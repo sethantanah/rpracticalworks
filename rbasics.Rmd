@@ -1,0 +1,52 @@
+---
+title: "Practical Worker"
+author: "Dr. Odoi and Seth Antanah"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+# Practical Codes for Analysis in R
+
+This note has been prepared to give students a practical guide to utilizing the R software in various aspects of statistics .
+
+## Basics Essentials of the R Language
+
+-   Calculations 
+
+-   Logical operations 
+
+-   Sequences 
+
+-   Testing and coercion 
+
+-   Missing values and things that are not numbers 
+
+-   Vectors and subscripts 
+
+-   Vectorized functions 
+
+-   Matrices and arrays 
+
+-   Sampling 
+
+-   Loops and repeats 
+
+-   Lists 
+
+-   Text, character strings and pattern matching 
+
+-   Dates and times 
+
+### **Calculations**
+
+#### Arithmetic
+
+The +, - , / and \* symbol
+
+```{r Addition, subtraction, division, multiplication}
+
+# Addition
+x = 5
+y = 10
+z = x + y
+```
