@@ -1,0 +1,472 @@
+---
+title: "R Practical Codes"
+author: "Dr. Odoi and Seth Antanah"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+## Distributions ( all both discrete and Continuous)
+
+```{r}
+
+# Load necessary libraries
+library(ggplot2)
+library(dplyr)
+library(stats)
+```
+
+## Continuous Distributions
+
+### Normal (Gaussian) Distribution
+
+One of the most important distributions, characterized by its bell-shaped curve. Many natural phenomena follow a normal distribution due to the central limit theorem.
+
+```{r}
+
+# Set up a common range of values for plotting
+x <- seq(-5, 10, length.out = 1000)
+
+# Normal Distribution
+normal_data <- dnorm(x, mean = 2, sd = 1)
+plot_normal <- data.frame(x, normal_data)
+```
+
+```{r}
+
+ggplot(plot_normal, aes(x, normal_data)) +
+  geom_line() +
+  ggtitle("Normal Distribution") +
+  xlab("x") + ylab("Density")
+```
+
+### Exponential Distribution
+
+Models the time between events in a Poisson process (events occurring randomly and independently in time).
+
+```{r}
+
+a <- 3
+l <- 1
+t <- seq(0,1.8,.05)
+ft <- a*l*t^(a-1)*exp(-l*t^a)
+plot(t,ft,type="l",col="blue",ylab="f(t) ")
+
+a <- 1
+ft <- a*l*t^(a-1)*exp(-l*t^a)
+lines(t,ft,type="l",col="red")
+
+a <- 2
+ft <- a*l*t^(a-1)*exp(-l*t^a)
+lines(t,ft,type="l",col="green")
+legend(1.4,1.1,c("1","2","3"),title="alpha",lty=c(1,1,1),col=c(2,3,4))
+```
+
+```{r}
+
+exp_data <- dexp(x, rate = 0.5)
+plot_exp <- data.frame(t, ft)
+```
+
+```{r}
+
+ggplot(plot_exp, aes(t, ft)) +
+  geom_line() +
+  ggtitle("Exponential Distribution") +
+  xlab("x") + ylab("Density")
+```
+
+### Gamma Distribution
+
+Generalizes the exponential distribution and is often used in modeling waiting times.
+
+```{r}
+
+gamma_data <- dgamma(x, shape = 2, rate = 0.5)
+plot_gamma <- data.frame(x, gamma_data)
+```
+
+```{r}
+
+ggplot(plot_gamma, aes(x, gamma_data)) +
+  geom_line() +
+  ggtitle("Gamma Distribution") +
+  xlab("x") + ylab("Density")
+```
+
+### Chi-Squared Distribution
+
+Arises in the context of the sum of squared standard normal random variables and is widely used in hypothesis testing.
+
+```{r}
+
+chi_squared_data <- dchisq(x, df = 5)
+plot_chi_squared <- data.frame(x, chi_squared_data)
+```
+
+```{r}
+ggplot(plot_chi_squared, aes(x, chi_squared_data)) +
+  geom_line() +
+  ggtitle("Chi-Squared Distribution") +
+  xlab("x") + ylab("Density")
+```
+
+### Cauchy Distribution
+
+Known for its heavy tails, often used to model outliers and extreme events.
+
+```{r}
+
+cauchy_data <- dcauchy(x, location = 2, scale = 1)
+plot_cauchy <- data.frame(x, cauchy_data)
+```
+
+```{r}
+ggplot(plot_cauchy, aes(x, cauchy_data)) +
+  geom_line() +
+  ggtitle("Cauchy Distribution") +
+  xlab("x") + ylab("Density")
+```
+
+### Beta Distribution
+
+Used to model random variables that are constrained to the interval [0, 1], often used for modeling proportions.
+
+```{r}
+beta_data <- dbeta(x, shape1 = 2, shape2 = 5)
+plot_beta <- data.frame(x, beta_data)
+```
+
+```{r}
+
+ggplot(plot_beta, aes(x, beta_data)) +
+  geom_line() +
+  ggtitle("Beta Distribution") +
+  xlab("x") + ylab("Density")
+```
+
+### Log-Normal Distribution
+
+Results from taking the logarithm of a normally distributed random variable, often used in financial modeling.
+
+```{r}
+
+lognormal_data <- dlnorm(x, meanlog = 0, sdlog = 0.5)
+plot_lognormal <- data.frame(x, lognormal_data)
+```
+
+```{r}
+ggplot(plot_lognormal, aes(x, lognormal_data)) +
+  geom_line() +
+  ggtitle("Log-Normal Distribution") +
+  xlab("x") + ylab("Density")
+```
+
+### Weibull Distribution
+
+Commonly used to model reliability and survival data.
+
+```{r}
+
+weibull_data <- dweibull(x, shape = 2, scale = 1)
+plot_weibull <- data.frame(x, weibull_data)
+```
+
+```{r}
+
+ggplot(plot_weibull, aes(x, weibull_data)) +
+  geom_line() +
+  ggtitle("Weibull Distribution") +
+  xlab("x") + ylab("Density")
+```
+
+```{r}
+
+a <- 3
+l <- 1
+t <- seq(0,1.8,.05)
+ft <- a*l*t^(a-1)*exp(-l*t^a)
+plot(t,ft,type="l",col="blue",ylab="f(t) ")
+a <- 1
+ft <- a*l*t^(a-1)*exp(-l*t^a)
+lines(t,ft,type="l",col="red")
+a <- 2
+ft <- a*l*t^(a-1)*exp(-l*t^a)
+lines(t,ft,type="l",col="green")
+legend(1.4,1.1,c("1","2","3"),title="alpha",lty=c(1,1,1),col=c(2,3,4))
+```
+
+### T-Distribution
+
+Used in hypothesis testing when the sample size is small and the population standard deviation is unknown.
+
+```{r}
+
+t_data <- dt(x, df = 5)
+plot_t <- data.frame(x, t_data)
+```
+
+```{r}
+
+ggplot(plot_t, aes(x, t_data)) +
+  geom_line() +
+  ggtitle("T-Distribution") +
+  xlab("x") + ylab("Density")
+```
+
+### F-Distribution
+
+Arises in the context of comparing variances from different populations.
+
+```{r}
+
+f_data <- df(x, df1 = 3, df2 = 8)
+plot_f <- data.frame(x, f_data)
+```
+
+```{r}
+
+ggplot(plot_f, aes(x, f_data)) +
+  geom_line() +
+  ggtitle("F-Distribution") +
+  xlab("x") + ylab("Density")
+```
+
+## Discrete Distributions
+
+### Bernoulli Distribution
+
+The Bernoulli distribution models a binary outcome where an event can have only two possible outcomes: success (usually denoted as 1) with probability p or failure (usually denoted as 0) with probability q = 1 - p.
+
+```{r}
+
+# Set up the probabilities
+p <- 0.3  # Probability of success
+q <- 1 - p  # Probability of failure
+
+# Create a data frame for the plot
+bernoulli_data <- data.frame(x = c(0, 1), y = c(q, p))
+```
+
+```{r}
+
+# Create the plot
+ggplot(bernoulli_data, aes(x = factor(x), y = y)) +
+  geom_bar(stat = "identity", width = 0.5) +
+  ggtitle("Bernoulli Distribution") +
+  xlab("Outcome") + ylab("Probability")
+```
+
+### Binomial Distribution
+
+The binomial distribution models the number of successes in a fixed number of independent Bernoulli trials. Each trial has two possible outcomes: success (usually denoted as 1) with probability p or failure (usually denoted as 0) with probability q = 1 - p. Here's an example of how to plot the binomial distribution using R:
+
+```{r}
+
+# Set up parameters
+n <- 10   # Number of trials
+p <- 0.3  # Probability of success
+
+# Generate x values representing the number of successes
+x <- 0:n
+
+# Compute the probabilities using the dbinom function
+binomial_probs <- dbinom(x, size = n, prob = p)
+
+# Create a data frame for the plot
+binomial_data <- data.frame(x, binomial_probs)
+```
+
+```{r}
+
+# Create the plot
+ggplot(binomial_data, aes(x, binomial_probs)) +
+  geom_bar(stat = "identity", width = 0.5) +
+  ggtitle("Binomial Distribution") +
+  xlab("Number of Successes") + ylab("Probability")
+
+```
+
+### Poisson Distribution
+
+The Poisson distribution models the number of events occurring in a fixed interval of time or space, given a known average rate of occurrence. Here's an example of how to plot the Poisson distribution using R:
+
+```{r}
+
+# Set up parameter
+lambda <- 3  # Average rate of occurrence
+
+# Generate x values representing the number of events
+x <- 0:20
+
+# Compute the probabilities using the dpois function
+poisson_probs <- dpois(x, lambda = lambda)
+
+# Create a data frame for the plot
+poisson_data <- data.frame(x, poisson_probs)
+```
+
+```{r}
+
+# Create the plot
+ggplot(poisson_data, aes(x, poisson_probs)) +
+  geom_bar(stat = "identity", width = 0.5) +
+  ggtitle("Poisson Distribution") +
+  xlab("Number of Events") + ylab("Probability")
+
+```
+
+### Geometric Distribution
+
+The geometric distribution models the number of trials needed for the first success in a sequence of independent Bernoulli trials. Each trial has two possible outcomes: success (usually denoted as 1) with probability p or failure (usually denoted as 0) with probability q = 1 - p.
+
+```{r}
+
+# Set up parameter
+p <- 0.2  # Probability of success
+
+# Generate x values representing the number of trials needed
+x <- 1:15
+
+# Compute the probabilities using the dgeom function
+geometric_probs <- dgeom(x, prob = p)
+
+# Create a data frame for the plot
+geometric_data <- data.frame(x, geometric_probs)
+```
+
+```{r}
+
+# Create the plot
+ggplot(geometric_data, aes(x, geometric_probs)) +
+  geom_bar(stat = "identity", width = 0.5) +
+  ggtitle("Geometric Distribution") +
+  xlab("Number of Trials needed for First Success") + ylab("Probability")
+
+```
+
+### Negative Binomial Distribution
+
+The negative binomial distribution models the number of trials needed for the kth success in a sequence of independent Bernoulli trials. Each trial has two possible outcomes: success (usually denoted as 1) with probability p or failure (usually denoted as 0) with probability q = 1 - p.
+
+```{r}
+
+# Set up parameters
+k <- 5   # Number of successes
+p <- 0.3 # Probability of success
+
+# Generate x values representing the number of trials needed
+x <- k:100
+
+# Compute the probabilities using the dnbinom function
+negative_binomial_probs <- dnbinom(x - k + 1, size = k, prob = p)
+
+# Create a data frame for the plot
+negative_binomial_data <- data.frame(x, negative_binomial_probs)
+
+```
+
+```{r}
+
+# Create the plot
+ggplot(negative_binomial_data, aes(x, negative_binomial_probs)) +
+  geom_bar(stat = "identity", width = 0.5) +
+  ggtitle("Negative Binomial Distribution") +
+  xlab("Number of Trials needed for k Successes") + ylab("Probability")
+
+```
+
+### Hypergeometric Distribution
+
+The hypergeometric distribution models the number of successes in a sample drawn without replacement from a finite population, where the items are divided into two classes (e.g., defective and non-defective items).
+
+```{r}
+
+# Set up parameters
+N <- 50    # Total population size
+K <- 15    # Number of success items in the population
+n <- 10    # Sample size
+
+# Generate x values representing the number of successes in the sample
+x <- 0:n
+
+# Compute the probabilities using the dhyper function
+hypergeometric_probs <- dhyper(x, m = K, n = N - K, k = n)
+
+# Create a data frame for the plot
+hypergeometric_data <- data.frame(x, hypergeometric_probs)
+```
+
+```{r}
+
+# Create the plot
+ggplot(hypergeometric_data, aes(x, hypergeometric_probs)) +
+  geom_bar(stat = "identity", width = 0.5) +
+  ggtitle("Hypergeometric Distribution") +
+  xlab("Number of Successes in Sample") + ylab("Probability")
+
+```
+
+### Discrete Uniform Distribution
+
+The discrete uniform distribution models equally likely outcomes over a finite range of values.
+
+```{r}
+
+# Set up parameters
+a <- 1   # Minimum value in the range
+b <- 6   # Maximum value in the range
+
+# Generate x values representing the possible outcomes
+x <- a:b
+
+# Compute the probabilities (uniform for each value in the range)
+uniform_probs <- rep(1 / (b - a + 1), length(x))
+
+# Create a data frame for the plot
+uniform_data <- data.frame(x, uniform_probs)
+```
+
+```{r}
+
+# Create the plot
+ggplot(uniform_data, aes(x, uniform_probs)) +
+  geom_bar(stat = "identity", width = 0.5) +
+  ggtitle("Discrete Uniform Distribution") +
+  xlab("Possible Outcome") + ylab("Probability")
+
+```
+
+### Multinomial Distribution
+
+The multinomial distribution generalizes the binomial distribution to more than two categories. It models the probability distribution of outcomes when conducting multiple independent trials, each with multiple possible outcomes.
+
+```{r}
+
+# Set up parameters
+n <- 10
+probs <- c(0.3, 0.4, 0.3)
+
+# Generate possible outcomes matrix
+outcomes <- expand.grid(replicate(length(probs), 0:(n - 1)))
+
+# Calculate probabilities for each outcome
+outcome_probs <- apply(outcomes, 1, function(outcome) {
+  prod(sapply(1:length(probs), function(i) probs[i] ^ outcome[i]))
+})
+
+# Create a data frame for the plot
+plot_data <- data.frame(outcome = 1:n,
+                        probability = outcome_probs)
+
+
+```
+
+```{r}
+
+# Create the plot
+ggplot(plot_data, aes(x = factor(outcome), y = probability)) +
+  geom_bar(stat = "identity", width = 0.5) +
+  ggtitle("Multinomial Distribution") +
+  xlab("Outcome") + ylab("Probability") +
+  scale_x_discrete(labels = 1:n)
+```

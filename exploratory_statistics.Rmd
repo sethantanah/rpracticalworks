@@ -1,0 +1,220 @@
+---
+title: "R Practical Codes"
+author: "Dr. Odoi and Seth Antanah"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+# Practical Codes for Analysis in R
+
+```{r warning=FALSE}
+
+install.packages("summarytools")
+install.packages("tidyverse")
+install.packages("ggplot2")
+```
+
+```{r}
+
+library(summarytools)
+library(tidyverse)
+library(corrplot)
+library(ggplot2)
+```
+
+## Exploratory Statistics
+
+Exploratory Statistics refers to the use of statistical techniques to summarize and describe a dataset in order to uncover patterns, relationships, and initial insights. This can involve calculating summary statistics, creating visualizations, and using basic statistical methods to get a sense of the data's characteristics. Its is an important step in statistical data analysis.
+
+> The examples will make illustrations using both functions native in R and a package when necessary. This is done to show the options you have when performing analysis in R.
+
+### Load Data for Exploration
+
+environmental_data.csv is a mocked up data set hence does not contain real life data.
+
+```{r}
+
+environmental_data <- read.csv('environmental_data.csv')
+attach(environmental_data)
+head(environmental_data)
+```
+
+### **Summary Statistics**
+
+Use the simpler **`summary()`** function or the advance **`descr()`** function from the summarytools package, to produce statistical summaries such as the mean, median, min, max, and quartiles..
+
+```{r}
+
+## Commented codes can be uncommented by removing the # symbols
+# summary(environmental_data)
+summarytools::descr(environmental_data)
+```
+
+### Correlation
+
+Calculates correlation coefficients between numeric variables
+
+```{r}
+
+# Correlation between two variables in the dataset
+cor(Water_Usage, Pollution_Level)
+```
+
+```{r}
+
+# Correlation between all variables in the dataset
+numeric_columns <- sapply(environmental_data, is.numeric)
+correlation_matrix <- cor(environmental_data[, numeric_columns])
+
+print(correlation_matrix)
+```
+
+### Graphics
+
+#### **Histograms**
+
+**`hist()`**: Creates a histogram to visualize the distribution of numeric variables.
+
+```{r}
+
+# Simple Approch
+hist(Energy_Consumed, col = "lightgray", border = NULL,
+     main = paste("Histogram of" , "Energy Consumed"),
+     xlab = "Energy Consumed", ylab = "Frequency",
+     axes = TRUE, plot = TRUE, labels = FALSE)
+```
+
+```{r}
+## Using ggplot2 
+gg <- ggplot(environmental_data, aes(x = Pollution_Level)) +
+  geom_histogram(binwidth = 10, fill = "gray", color = "black") +
+  labs(title = "Histogram of Pollution Levels", x = "Pollution Level")
+
+gg + theme_minimal()
+```
+
+```{r}
+
+# Bar plot of Technology Usage
+technology_counts <- environmental_data %>%
+  group_by(Technology_Used) %>%
+  summarise(count = n())
+  
+gg <- ggplot(technology_counts, aes(x = reorder(Technology_Used, -count), y = count)) +
+  geom_bar(stat = "identity", fill = "orange") +
+  labs(title = "Bar Plot of Technology Usage", x = "Technology Used", y = "Count") 
+
+gg + theme_minimal()
+```
+
+#### **Scatter Plots**
+
+**`plot()`**: Creates scatter plots to visualize the relationship between two numeric variables.
+
+```{r}
+plot(x = Pollution_Level, y = Energy_Consumed)
+```
+
+```{r}
+
+gg <- ggplot(environmental_data, aes(x = Pollution_Level, y = Energy_Consumed)) +
+  geom_point(color = "blue") +
+  labs(title = "Scatter Plot of Pollution Level vs. Water Usage", x = "Pollution                   Level", y = "Water Usage")
+
+gg + theme_minimal()
+```
+
+#### **Box Plots**
+
+**`plot()`**: Generates a box plot to visualize the distribution and identify outliers in numeric data.
+
+```{r}
+plot(x = as.factor(Location), y = Energy_Consumed)
+```
+
+```{r}
+
+# Box plot of Energy Consumed by Location
+ggplot(environmental_data, aes(x = Location, y = Energy_Consumed)) +
+  geom_boxplot(fill = "lightgreen", color = "darkgreen") +
+  labs(title = "Box Plot of Energy Consumed by Location", x = "Location", y = "Energy Consumed")
+```
+
+**Correlation Analysis**:
+
+-   **`cor()`**: Calculates correlation coefficients between numeric variables
+
+```{r}
+
+numeric_columns <- sapply(environmental_data, is.numeric)
+correlation_matrix <- cor(environmental_data[, numeric_columns])
+
+# Create the correlation plot
+corrplot(correlation_matrix, method = "color", type = "upper", tl.col = "black")
+```
+
+**Density Plots**:
+
+**`density()`**: Creates a kernel density plot to visualize the probability density of numeric
+
+```{r}
+
+density_plot <- density(Pollution_Level)
+plot(density_plot)
+```
+
+```{r}
+
+
+gg <- ggplot(environmental_data, aes(x = Pollution_Level)) +
+  geom_density(fill = "blue", alpha = 0.5) +
+  labs(title = "Density Plot of Pollution Levels", x = "Pollution Level", y = "Density")
+
+gg + theme_minimal()
+```
+
+**Crosstabulations (Contingency Tables)**:
+
+**`table()`**: Creates contingency tables to examine the relationships between two categorical variables.
+
+```{r}
+
+location <- Location
+technology <- Technology_Used
+
+cross_tab <- table(location, technology)
+print(cross_tab)
+```
+
+```{r}
+
+# Create a contingency table
+contingency_table <- table(environmental_data$Location, environmental_data$Technology_Used)
+
+# Convert the table to a data frame
+contingency_df <- as.data.frame.matrix(contingency_table)
+
+# Create a grouped bar plot
+ggplot(contingency_df, aes(x = rownames(contingency_df))) +
+  geom_bar(aes(y = `Bioremediation`, fill = "Bioremediation"), stat = "identity", position = "dodge") +
+  geom_bar(aes(y = `Solar Power`, fill = "Solar Power"), stat = "identity", position = "dodge") +
+  geom_bar(aes(y = `Waste-to-Energy`, fill = "Waste-to-Energy"), stat = "identity", position = "dodge") +
+  labs(title = "Technology Usage by Location", x = "Location", y = "Count", fill = "Technology Used") +
+  scale_fill_manual(values = c("Bioremediation" = "blue", "Solar Power" = "green", "Waste-to-Energy" = "orange")) +
+  theme_minimal() +
+  theme(legend.position = "top")
+```
+
+**Pairwise Plots**:
+
+**`pairs()`**: Generates a matrix of scatter plots for multiple numeric variables to explore their relationships.
+
+```{r}
+
+data <- data.frame(
+  x = c(1, 2, 3, 4, 5),
+  y = c(3, 6, 4, 8, 7),
+  z = c(5, 2, 6, 3, 1)
+)
+pairs(data)
+```
