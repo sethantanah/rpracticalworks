@@ -1,0 +1,242 @@
+---
+title: "Exploratory Data Analysis"
+author: "Dr. Benjamin Odoi"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+## Installations
+
+Install prerequisite libraries for obtaining summary statistics and plotting graphics.
+
+Libraries may be installed once unto your system and would require updates
+
+```{r warning=FALSE}
+
+# install.packages("summarytools")
+# install.packages("tidyverse")
+# install.packages("ggplot2")
+```
+
+## Loading Libaries
+
+```{r load library}
+
+library(summarytools)
+library(tidyverse)
+library(corrplot)
+library(ggplot2)
+```
+
+### Load Data for Exploration
+
+This dataset contains information on all accidents, injuries and illnesses reported by mine operators and contractors beginning on 1/1/2000. The data in the table is obtained from the Mine Accident, Injury and Illness Report form (MSHA Form 7000-1). Document number is the unique key for this data. It provides information about the accident/injury/illness such as type, mine location, lost days and the degree of injury.
+
+-   Link: <https://arlweb.msha.gov/opengovernmentdata/DataSets/Accidents.zip>
+
+-   The file was downloaded and unzipped to make the files available for the analysis
+
+-   The data set was in text format but was converted to a csv file using the excel software, this was required as the it was cumbersome for R to read the data directly. This is an optional step you might want to consider in the process of transforming your data into a format that is easy to work with your analysis tools.
+
+```{r message=FALSE, warning=FALSE}
+
+path_to_file <- "C:/Users/Student/Downloads/Datasets Doi/Accidents.csv"
+mine_accidents <- read.csv(path_to_file, header=TRUE, sep = ',') # The dataset is loaded into a dataframe which is easier to work with.
+attach(mine_accidents)
+```
+
+### **Analysis Process**
+
+In order to gain the most out of the data set we would follow a simple framework to guide us in the analysis. The framework is as follows:
+
+1.  Identify the problem, or question we want to solve or answer using the data
+
+2.  Identify the data available to us that could be useful in solving the problem.
+
+3.  Prepare the data set to ensure it is, relevant, complete and accurate
+
+Before starting with any form of analysis it is important that we understand the content of the data set.
+
+-   The `head` function is used to take a snapshot of the data set to see some of the values it contains.
+
+```{r}
+
+# First 10 observations or rows in the data set
+head(mine_accidents, 10)
+```
+
+We have a lot of columns in our data set, it would be appropriate for us to see all the coulnms available and understand what they mean.
+
+-   The `names` function gives all the column headings present in the data set.
+
+```{r}
+
+names(mine_accidents)
+```
+
+Some description of the columns in the data set
+
+> MINE_ID: Identification number assigned to the mine by MSHA. It is the mine identification number of the mine where the accident/injury/illness occurred.
+>
+> CONTROLLER_ID: Identification number assigned by MSHA Assessments for a Legal Entity acting as a controller of an operator at the time of the accident.
+>
+> CONTROLLER_NAME: Name of the controller active at the time of the accident.
+>
+> SUBUNIT_CD: Code that identifies the location within a mine where the accident/injury/illness occurred.
+>
+> SUBUNIT: Description of the subunit code referring to the location within a mine where the accident/injury/illness occurred: (01) Underground; (02) Surface at underground; (03) Strip, quarry, open pit; (04) Auger; (05) Culm bank/refuse pile; (06) Dredge; (12) Other mining; (17) Independent shops or yards; (30) Mill operation/preparation plant; (99) Office workers at mine site.
+>
+> ACCIDENT_DT: Date the accident/injury/illness occurred (mm/dd/yyyy).
+>
+> ACCIDENT_TIME: Time the accident/injury/illness occurred (24-hour clock).
+>
+> DEGREE_INJURY: Description of the degree of injury/illness to the individual: (00) Accident only; (01) Fatality; (02) Permanent total or permanent partial disability; (03) Days away from work only; (04) Days away from work and restricted activity; (05) Days restricted activity only; (06) No days away from work, no restrictions; (07) Occupational illness not degree 1-6; (08) Injuries due to natural causes; (09) Injuries involving non-employees; (10) All other cases (incl. 1st aid); (?) No value found.
+>
+> UG_LOCATION\|: Description of the underground location code where the accident/injury/illness occurred: (01) Vertical shaft; (02) Slope/inclined shaft; (03) Face; (04) Intersection; (05) Underground shop/office; (06) Last open crosscut; (07) Inby permanent support; (08) Haulageway; (09) Other entry (not haulageway); (98) Other; (99) Not Marked; (?) No value found.
+>
+> UG_MINING_METHOD_CD: Description of the underground mining method code where the accident/injury/illness occurred.
+>
+> UG_MINING_METHOD: Description of the underground mining method code where the accident/injury/illness occurred: (01) Longwall; (02) Shortwall; (03) Conventional Stoping; (05) Continuous Miner; (06) Hand; (07) Caving; (08) Other; (?) No Value Found.
+
+The `str` functions is handy in obtaining a description of the data set.
+
+The output of this function shows the data types of the variables. This is are chance to identify any miss representations of the data in our data frame, example: date column being formatted as a character.
+
+> **Data types**
+>
+> 1.  **Numeric (double):** Represents numeric values, including both integers and decimals. Example: **`3.14`**, **`123`**, **`-0.5`**
+>
+> 2.  **Integer:** Represents whole numbers (integers). Example: **`10`**, **`-42`**, **`0`**
+>
+> 3.  **Character (char):** Represents strings of text or characters. Example: **`"Hello, world!"`**, **`"John Doe"`**, **`"R Programming"`**
+>
+> 4.  **Logical (logical):** Represents Boolean values, **`TRUE`** or **`FALSE`**. Example: **`TRUE`**, **`FALSE`**
+>
+> 5.  **Factor:** Represents categorical data with levels or categories. Example: **`factor("Male", levels = c("Male", "Female"))`**
+>
+> 6.  **Date:** Represents date values. Example: **`as.Date("2023-08-28")`**
+>
+> 7.  **POSIXct and POSIXlt:** Represent date and time values with time zone information. Example: **`as.POSIXct("2023-08-28 14:30:00", tz = "UTC")`**
+>
+> 8.  **Complex:** Represents complex numbers with real and imaginary parts. Example: **`1 + 2i`**, **`-3 + 4i`**
+>
+> 9.  **Raw:** Represents raw bytes of data. Example: **`as.raw(c(0x41, 0x42, 0x43))`**
+>
+> 10. **Lists:** Ordered collections of objects (can be of different types). Example: **`list(1, "apple", TRUE, c(1, 2, 3))`**
+>
+> 11. **Vectors:** Basic building blocks in R, can hold values of the same type. Example: **`c(1, 2, 3, 4, 5)`**
+>
+> 12. **Matrices:** 2-dimensional arrays with rows and columns. Example: **`matrix(c(1, 2, 3, 4), nrow = 2, ncol = 2)`**
+>
+> 13. **Arrays:** Multi-dimensional generalization of matrices. Example: **`array(1:24, dim = c(2, 3, 4))`**
+>
+> 14. **Data Frames:** Tabular data structures with rows and named columns (like a spreadsheet). Example: **`data.frame(Name = c("Alice", "Bob"), Age = c(25, 30))`**
+
+```{r}
+str(mine_accidents)
+```
+
+From the output we observe that ACCIDENT_DT is being represented as a character instead of a date type. we would later see how to convert it to the appropriate type
+
+The above step is necessary as it allows us to:
+
+1.   better understand the data we want to work with.
+
+2.  identify which columns that might contain the data you believe can help you answer your analysis question.
+
+3.  select the data you want to work with.
+
+4.  transform the misreprented data types to the appropriate types for the analysis
+
+### Problem Identification
+
+> Lets assume management is worried about the number of accidents occurring at the various mine sites. They would want to understand where the accidents are occurring , when they occur and the type of injury sustained.
+>
+> They want to also understand the type of mining methods used in those mine sites where the accidents occure so that they can adopt better mining methods at those sites.
+
+The insight you gain from this analysis would help your stakeholders (managers) gain better understanding of the accidents situation in the mines and take positive actions, that would benefit yourself and others.
+
+With the problem and analysis objective clear in mined we can now start processing data for analysis.
+
+### Data Cleaning
+
+Before we can clean the data we must first know what sort of dirt is in the data, the above step of describing the data set helped us identify some issues like :
+
+-   Wrong data types of columns and
+
+-   Missing values (?)
+
+#### Summary Statistics
+
+Our next step involves using summary statistics to understand our data.
+
+The summary function gives a statistical summary of the data
+
+> -   **Min**: The minimum value in the data.
+>
+> -   **1st Qu**: The first quartile, also known as the 25th percentile.
+>
+> -   **Median**: The median, which is the 50th percentile.
+>
+> -   **Mean**: The arithmetic mean (average) of the data.
+>
+> -   **3rd Qu**: The third quartile, or the 75th percentile.
+>
+> -   **Max**: The maximum value in the data.
+>
+> -   **NA's**: The count of missing values.
+
+```{r}
+
+# Display summary using summary() function
+data_summary <- summary(mine_accidents)
+print(data_summary)
+```
+
+From the the output we realize that
+
+-   the years in consideration is from 2000 to 2023
+
+-   the experience of injured mine workers in a mine ranges from less than a month to over 65 months.
+
+There a lot of insights to be gleaned from the summary statistics. For the purpose of data cleaning we observe that:
+
+1.  most columns contain null values that we must handle using appropriate means.
+
+The data cleaning processes that we can identify to undertake using this information information includes:
+
+> 1.  **Missing Values:** The **`NA's`** count in the **`summary()`** output indicates the number of missing values for each variable. Identifying missing values can guide you in deciding how to handle them, whether by imputing missing values, removing rows with missing values, or using appropriate techniques.
+>
+> 2.  **Outliers:** By looking at the minimum and maximum values, as well as quartiles (1st Qu, 3rd Qu), you can identify potential outliers. Outliers can be erroneous data points or indicate interesting phenomena. You might need to decide whether to keep, transform, or remove outliers.
+>
+> 3.  **Data Distribution:** Summary statistics like mean, median, and quartiles provide insights into the distribution of the data. Skewed distributions might require transformations for normalization.
+>
+> 4.  **Data Type Mismatches:** If summary statistics for a variable don't make sense (e.g., mean and quartiles for a categorical variable), it could indicate a data type mismatch that needs correction.
+>
+> 5.  **Data Range Issues:** If the range of values seems unexpected (e.g., negative age values), it might indicate data entry errors that require investigation.
+>
+> 6.  **Data Consistency:** Comparing summary statistics across related variables (e.g., age and birth year) can help identify inconsistencies that need correction.
+>
+> 7.  **Data Scale:** Discrepancies in the scale of variables (e.g., one variable is in thousands while another is in single digits) might require normalization.
+>
+> 8.  **Categorical Variables:** For categorical variables (factors), the **`summary()`** output can provide levels and counts, helping you identify rare or unexpected categories.
+>
+> 9.  **Variable Relationships:** By comparing summary statistics across different variables, you might identify relationships that need further exploration or validation.
+>
+> 10. **Sampling Errors:** If the dataset is a sample, summary statistics can help you assess whether it accurately represents the population, or if sampling errors are present.
+>
+> 11. **Data Consistency:** For time-related data, identifying irregularities like negative timestamps or future dates can help improve data consistency.
+
+> Note: Summary statistics for numeric columns are often the most useful.
+
+Not all of the data would be helpful in our analysis for example: CAL_YR, CAL_QTR, FISCAL_YR, FISCAL_QTR contains information already capture in the ACCIDENT_DT column. And would not contribute much to our analysis, we can remove these columns so that we can focus on those that matter to us.
+
+The `tidyverse` package has the `select` function that can be used to select the columns we want to use of our analysis or those we wish to exclude from the analysis.
+
+```{r}
+
+# Exclude uncessary columns from the dataset
+
+cleaned_data <- mine_accidents %>% 
+                select(-c(CAL_YR, CAL_QTR, FISCAL_YR, FISCAL_QTR))
+```
