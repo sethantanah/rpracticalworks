@@ -7,25 +7,25 @@ output: html_document
 
 ## Installations
 
-Install prerequisite libraries for obtaining summary statistics and plotting graphics.
-
-Libraries may be installed once unto your system and would require updates
+Install required libraries for obtaining summary statistics and plotting graphics.
 
 ```{r warning=FALSE}
 
 # install.packages("summarytools")
 # install.packages("tidyverse")
 # install.packages("ggplot2")
+# install.packages("moments")
 ```
 
 ## Loading Libaries
 
-```{r load library}
+```{r load library, message=FALSE, warning=FALSE}
 
 library(summarytools)
 library(tidyverse)
 library(corrplot)
 library(ggplot2)
+library(dplyr)
 ```
 
 ### Load Data for Exploration
@@ -36,7 +36,7 @@ This dataset contains information on all accidents, injuries and illnesses repor
 
 -   The file was downloaded and unzipped to make the files available for the analysis
 
--   The data set was in text format but was converted to a csv file using the excel software, this was required as the it was cumbersome for R to read the data directly. This is an optional step you might want to consider in the process of transforming your data into a format that is easy to work with your analysis tools.
+-   The dataset was in text format but was converted to a csv file using the excel software, this was required as the it was cumbersome for R to read the text file directly. This is an optional step you might want to consider in the process of converting your file into a format that is easy to work with your analysis tools.
 
 ```{r message=FALSE, warning=FALSE}
 
@@ -47,27 +47,27 @@ attach(mine_accidents)
 
 ### **Analysis Process**
 
-In order to gain the most out of the data set we would follow a simple framework to guide us in the analysis. The framework is as follows:
+In order to gain the most out of the dataset we would follow a simple framework to guide us in the analysis. The framework is as follows:
 
 1.  Identify the problem, or question we want to solve or answer using the data
 
-2.  Identify the data available to us that could be useful in solving the problem.
+2.  Identify the data available to us, that can be useful in solving the problem.
 
 3.  Prepare the data set to ensure it is, relevant, complete and accurate
 
-Before starting with any form of analysis it is important that we understand the content of the data set.
+Before starting with any form of analysis it is important that we understand the content of the dataset.
 
--   The `head` function is used to take a snapshot of the data set to see some of the values it contains.
+-   The `head` function is used to take a snapshot of the dataset to see some of the values it contains.
 
 ```{r}
 
 # First 10 observations or rows in the data set
-head(mine_accidents, 10)
+head(mine_accidents, 3)
 ```
 
-We have a lot of columns in our data set, it would be appropriate for us to see all the coulnms available and understand what they mean.
+We have a lot of columns in our dataset, it would be appropriate for us to see all the columns available and understand what they mean.
 
--   The `names` function gives all the column headings present in the data set.
+-   The `names` function gives the names of all the columns present in the dataset.
 
 ```{r}
 
@@ -100,59 +100,59 @@ Some description of the columns in the data set
 
 The `str` functions is handy in obtaining a description of the data set.
 
-The output of this function shows the data types of the variables. This is are chance to identify any miss representations of the data in our data frame, example: date column being formatted as a character.
+The output of this function shows the data types of the variables. This is our chance to identify any miss representations of the data in our data frame, example: date column being formatted as a character.
 
 > **Data types**
 >
-> 1.  **Numeric (double):** Represents numeric values, including both integers and decimals. Example: **`3.14`**, **`123`**, **`-0.5`**
+> 1.  Numeric (double): Represents numeric values, including both integers and decimals. Example: `3.14`, `123`, `-0.5`
 >
-> 2.  **Integer:** Represents whole numbers (integers). Example: **`10`**, **`-42`**, **`0`**
+> 2.  Integer: Represents whole numbers (integers). Example: `10`, `-42`, `0`
 >
-> 3.  **Character (char):** Represents strings of text or characters. Example: **`"Hello, world!"`**, **`"John Doe"`**, **`"R Programming"`**
+> 3.  Character (char): Represents strings of text or characters. Example: `"Hello, world!"`, `"John Doe"`, `"R Programming"`
 >
-> 4.  **Logical (logical):** Represents Boolean values, **`TRUE`** or **`FALSE`**. Example: **`TRUE`**, **`FALSE`**
+> 4.  Logical (logical): Represents Boolean values, `TRUE` or `FALSE`. Example: `TRUE`, `FALSE`
 >
-> 5.  **Factor:** Represents categorical data with levels or categories. Example: **`factor("Male", levels = c("Male", "Female"))`**
+> 5.  Factor: Represents categorical data with levels or categories. Example: `factor("Male", levels = c("Male", "Female"))`
 >
-> 6.  **Date:** Represents date values. Example: **`as.Date("2023-08-28")`**
+> 6.  Date: Represents date values. Example: `as.Date("2023-08-28")`
 >
-> 7.  **POSIXct and POSIXlt:** Represent date and time values with time zone information. Example: **`as.POSIXct("2023-08-28 14:30:00", tz = "UTC")`**
+> 7.  POSIXct and POSIXlt: Represent date and time values with time zone information. Example: `as.POSIXct("2023-08-28 14:30:00", tz = "UTC")`
 >
-> 8.  **Complex:** Represents complex numbers with real and imaginary parts. Example: **`1 + 2i`**, **`-3 + 4i`**
+> 8.  Complex: Represents complex numbers with real and imaginary parts. Example: `1 + 2i`, `-3 + 4i`
 >
-> 9.  **Raw:** Represents raw bytes of data. Example: **`as.raw(c(0x41, 0x42, 0x43))`**
+> 9.  Raw: Represents raw bytes of data. Example: `as.raw(c(0x41, 0x42, 0x43))`
 >
-> 10. **Lists:** Ordered collections of objects (can be of different types). Example: **`list(1, "apple", TRUE, c(1, 2, 3))`**
+> 10. Lists: Ordered collections of objects (can be of different types). Example: `list(1, "apple", TRUE, c(1, 2, 3))`
 >
-> 11. **Vectors:** Basic building blocks in R, can hold values of the same type. Example: **`c(1, 2, 3, 4, 5)`**
+> 11. Vectors: Basic building blocks in R, can hold values of the same type. Example: `c(1, 2, 3, 4, 5)`
 >
-> 12. **Matrices:** 2-dimensional arrays with rows and columns. Example: **`matrix(c(1, 2, 3, 4), nrow = 2, ncol = 2)`**
+> 12. Matrices: 2-dimensional arrays with rows and columns. Example: `matrix(c(1, 2, 3, 4), nrow = 2, ncol = 2)`
 >
-> 13. **Arrays:** Multi-dimensional generalization of matrices. Example: **`array(1:24, dim = c(2, 3, 4))`**
+> 13. Arrays: Multi-dimensional generalization of matrices. Example: `array(1:24, dim = c(2, 3, 4))`
 >
-> 14. **Data Frames:** Tabular data structures with rows and named columns (like a spreadsheet). Example: **`data.frame(Name = c("Alice", "Bob"), Age = c(25, 30))`**
+> 14. Data Frames: Tabular data structures with rows and named columns (like a spreadsheet). Example: `data.frame(Name = c("Alice", "Bob"), Age = c(25, 30))`
 
 ```{r}
 str(mine_accidents)
 ```
 
-From the output we observe that ACCIDENT_DT is being represented as a character instead of a date type. we would later see how to convert it to the appropriate type
+From the output we observe that ACCIDENT_DT is being represented as a character instead of a date type. we would later see how to convert it to the appropriate type.
 
 The above step is necessary as it allows us to:
 
-1.   better understand the data we want to work with.
+1.  better understand the data we want to work with.
 
-2.  identify which columns that might contain the data you believe can help you answer your analysis question.
+2.  identify those columns that might contain the data we believe can help us answer the analysis question.
 
 3.  select the data you want to work with.
 
-4.  transform the misreprented data types to the appropriate types for the analysis
+4.  convert the misrepresented data types to the appropriate types for the analysis
 
 ### Problem Identification
 
 > Lets assume management is worried about the number of accidents occurring at the various mine sites. They would want to understand where the accidents are occurring , when they occur and the type of injury sustained.
 >
-> They want to also understand the type of mining methods used in those mine sites where the accidents occure so that they can adopt better mining methods at those sites.
+> They want to also understand the type of mining methods used in those mine sites where the accidents occur so that they can adopt better mining methods at those sites.
 
 The insight you gain from this analysis would help your stakeholders (managers) gain better understanding of the accidents situation in the mines and take positive actions, that would benefit yourself and others.
 
@@ -160,11 +160,11 @@ With the problem and analysis objective clear in mined we can now start processi
 
 ### Data Cleaning
 
-Before we can clean the data we must first know what sort of dirt is in the data, the above step of describing the data set helped us identify some issues like :
+Before we can clean the data we must first know what sort of 'dirt' is in the data, the above step of describing the data set helped us identify some issues like :
 
 -   Wrong data types of columns and
 
--   Missing values (?)
+-   Missing values (?).
 
 #### Summary Statistics
 
@@ -172,19 +172,19 @@ Our next step involves using summary statistics to understand our data.
 
 The summary function gives a statistical summary of the data
 
-> -   **Min**: The minimum value in the data.
+> -   Min: The minimum value in the data.
 >
-> -   **1st Qu**: The first quartile, also known as the 25th percentile.
+> -   1st Qu: The first quartile, also known as the 25th percentile.
 >
-> -   **Median**: The median, which is the 50th percentile.
+> -   Median: The median, which is the 50th percentile.
 >
-> -   **Mean**: The arithmetic mean (average) of the data.
+> -   Mean: The arithmetic mean (average) of the data.
 >
-> -   **3rd Qu**: The third quartile, or the 75th percentile.
+> -   3rd Qu: The third quartile, or the 75th percentile.
 >
-> -   **Max**: The maximum value in the data.
+> -   Max: The maximum value in the data.
 >
-> -   **NA's**: The count of missing values.
+> -   NA's: The count of missing values.
 
 ```{r}
 
@@ -201,33 +201,214 @@ From the the output we realize that
 
 There a lot of insights to be gleaned from the summary statistics. For the purpose of data cleaning we observe that:
 
-1.  most columns contain null values that we must handle using appropriate means.
+1.  most columns contain null values that we must handle using appropriate methods.
 
-The data cleaning processes that we can identify to undertake using this information information includes:
+The data cleaning processes that we can identify to undertake using this information includes:
 
-> 1.  **Missing Values:** The **`NA's`** count in the **`summary()`** output indicates the number of missing values for each variable. Identifying missing values can guide you in deciding how to handle them, whether by imputing missing values, removing rows with missing values, or using appropriate techniques.
+> 1.  Missing Values: The `NA's` count in the `summary()` output indicates the number of missing values for each variable. Identifying missing values can guide you in deciding how to handle them, whether by imputing missing values, removing rows with missing values, or using appropriate techniques.
 >
-> 2.  **Outliers:** By looking at the minimum and maximum values, as well as quartiles (1st Qu, 3rd Qu), you can identify potential outliers. Outliers can be erroneous data points or indicate interesting phenomena. You might need to decide whether to keep, transform, or remove outliers.
+> 2.  Outliers: By looking at the minimum and maximum values, as well as quartiles (1st Qu, 3rd Qu), you can identify potential outliers. Outliers can be erroneous data points or indicate interesting phenomena. You might need to decide whether to keep, transform, or remove outliers.
 >
-> 3.  **Data Distribution:** Summary statistics like mean, median, and quartiles provide insights into the distribution of the data. Skewed distributions might require transformations for normalization.
+> 3.  Data Distribution: Summary statistics like mean, median, and quartiles provide insights into the distribution of the data. Skewed distributions might require transformations for normalization.
 >
-> 4.  **Data Type Mismatches:** If summary statistics for a variable don't make sense (e.g., mean and quartiles for a categorical variable), it could indicate a data type mismatch that needs correction.
+> 4.  Data Type Mismatches: If summary statistics for a variable don't make sense (e.g., mean and quartiles for a categorical variable), it could indicate a data type mismatch that needs correction.
 >
-> 5.  **Data Range Issues:** If the range of values seems unexpected (e.g., negative age values), it might indicate data entry errors that require investigation.
+> 5.  Data Range Issues: If the range of values seems unexpected (e.g., negative age values), it might indicate data entry errors that require investigation.
 >
-> 6.  **Data Consistency:** Comparing summary statistics across related variables (e.g., age and birth year) can help identify inconsistencies that need correction.
+> 6.  Data Consistency: Comparing summary statistics across related variables (e.g., age and birth year) can help identify inconsistencies that need correction.
 >
-> 7.  **Data Scale:** Discrepancies in the scale of variables (e.g., one variable is in thousands while another is in single digits) might require normalization.
+> 7.  Data Scale: Discrepancies in the scale of variables (e.g., one variable is in thousands while another is in single digits) might require normalization.
 >
-> 8.  **Categorical Variables:** For categorical variables (factors), the **`summary()`** output can provide levels and counts, helping you identify rare or unexpected categories.
+> 8.  Categorical Variables: For categorical variables (factors), the `summary()` output can provide levels and counts, helping you identify rare or unexpected categories.
 >
-> 9.  **Variable Relationships:** By comparing summary statistics across different variables, you might identify relationships that need further exploration or validation.
+> 9.  Variable Relationships: By comparing summary statistics across different variables, you might identify relationships that need further exploration or validation.
 >
-> 10. **Sampling Errors:** If the dataset is a sample, summary statistics can help you assess whether it accurately represents the population, or if sampling errors are present.
+> 10. Sampling Errors: If the dataset is a sample, summary statistics can help you assess whether it accurately represents the population, or if sampling errors are present.
 >
-> 11. **Data Consistency:** For time-related data, identifying irregularities like negative timestamps or future dates can help improve data consistency.
+> 11. Data Consistency: For time-related data, identifying irregularities like negative timestamps or future dates can help improve data consistency.
 
-> Note: Summary statistics for numeric columns are often the most useful.
+Other summary statistics that are not provided by the summary function can be calculated as follows:
+
+##### Standard Deviation and Variance
+
+```{r}
+
+
+# Calculate summary statistics for specific columns
+summary_stats <- mine_accidents %>%
+  summarise(
+    # Min_MINE_EXPER = min(MINE_EXPER, na.rm = TRUE),
+    # Max_MINE_EXPER = max(MINE_EXPER, na.rm = TRUE),
+    # Median_MINE_EXPER = median(MINE_EXPER, na.rm = TRUE),
+    # Mean_MINE_EXPER = mean(MINE_EXPER, na.rm = TRUE),
+    SD_MINE_EXPER = sd(MINE_EXPER, na.rm = TRUE),
+    Variance_MINE_EXPER = var(MINE_EXPER, na.rm = TRUE)
+  )
+
+# Print the summary statistics
+print(summary_stats)
+```
+
+-   A standard deviation of 8.693857 means that, on average, a mine worker's experience deviates from the mean experience by approximately 8.69 months.
+
+-   A smaller standard deviation suggests that the data points are closer to the mean, indicating less variability in experience levels.
+
+```{r}
+
+# Visualize Varience and Standard Deviation with a box and whisker plot
+ggplot(mine_accidents, aes(x = MINE_EXPER)) +
+  geom_boxplot(fill = "blue", color = "black") +
+  ggtitle("Miners  Experience at Accident sites") +
+  ylab("Values")
+```
+
+> In a box plot, the box represents the IQR, and whiskers extend to the minimum and maximum values within 1.5 times the IQR. Any data points outside the whiskers are considered potential outliers.
+>
+> -   A wider box and longer whiskers indicate higher variance and standard deviation.
+>
+> -   A narrow box and shorter whiskers indicate lower variance and standard deviation.
+
+What insights do you deduce from the above plot?
+
+We would later explore the relationship between experience level and the rate of accidents.
+
+##### Skewness and Kurtosis
+
+```{r required packages}
+
+library(moments)
+```
+
+```{r}
+
+# Calculate skewness and kurtosis for the "Age" column
+skewness_MINE_EXPER <- skewness(mine_accidents$MINE_EXPER, na.rm = TRUE)
+kurtosis_MINE_EXPER <- kurtosis(mine_accidents$MINE_EXPER, na.rm = TRUE)
+
+# Print the results
+print(paste("Skewness MINE_EXPER:", skewness_MINE_EXPER))
+print(paste("Kurtosis MINE_EXPER:", kurtosis_MINE_EXPER))
+
+```
+
+1.  **Skewness (1.84514527002742):**
+
+    -   Skewness measures the asymmetry of the distribution of data. Positive skewness (greater than 0) indicates that the data is skewed to the right, meaning that the tail on the right side of the distribution is longer or fatter than the left side.
+
+    -   In the context of mine worker experience, a skewness value of 1.84514527002742 suggests that there is a right skew in the data. This means that there may be a few mine workers with significantly more years of experience than the majority of workers, causing the distribution to be stretched out to the right.
+
+    -   Workers with extensive experience may be considered outliers or constitute a minority in the dataset.
+
+        ```{r}
+        # Visualize skweness by plotting a histogram
+        ggplot(mine_accidents, aes(x = MINE_EXPER)) +
+          geom_histogram(binwidth = 5, fill = "blue", color = "black", alpha = 0.7) +
+          ggtitle("Miners Experience at Accident sites") +
+          xlab("Months") + ylab("Frequency")
+        ```
+
+2.  **Kurtosis:**
+
+    -   Kurtosis measures the tailedness or peakedness of the distribution of data. A positive kurtosis value (greater than 3 for the normal distribution) indicates that the distribution has heavier tails and a sharper peak compared to a normal distribution.
+
+    -   In the context of mine worker experience, a kurtosis value of 5.89573414638389 suggests that the distribution has heavy tails and is more peaked than a normal distribution.
+
+    -   This can indicate that the dataset has more extreme values or outliers compared to a normal distribution, contributing to the heavy tails.
+
+```{r}
+# Visualize Kurtosis by plotting a Density plot
+ggplot(mine_accidents, aes(x = MINE_EXPER)) +
+ geom_density(fill = "blue", color = "black") +
+  ggtitle("Miners  Experience at Accident sites") +
+  xlab("Months") + ylab("Density")
+```
+
+With the above summary statistics in mind we will go ahead and perform the following data cleaning processes.
+
+-   Remove Duplicates
+
+-   Handle Missing Values
+
+-   Handle Missing Values
+
+-   Converting Data Types
+
+-   Select Relevant Data for Analysis
+
+#### Remove Duplicates
+
+Duplicates refer to rows or records with identical or nearly identical attribute values. Identifying and addressing duplicates is crucial for data quality and unbiased analysis results.
+
+```{r}
+# Check for duplicates 
+duplicates <- mine_accidents[duplicated(mine_accidents) | duplicated(mine_accidents, fromLast = TRUE), ]
+print(duplicates[1:5])
+```
+
+Thare are a couple of duplicate rows in the dataset, but remember that the dicision to remove such duplicates may depend on your knowledge of the data and its collection processes.
+
+```{r}
+
+# Remove duplicates
+cleaned_data <- mine_accidents %>%
+  distinct()
+```
+
+#### Handle Missing Values
+
+"missing values" refer to the absence of data for one or more attributes (columns) in a dataset where data should ideally be present. These missing values can occur for various reasons and are a common issue in real-world datasets. Understanding and appropriately handling missing values is crucial for accurate and reliable data analysis.
+
+```{r}
+
+# Check for missing or null values
+missing_values <- cleaned_data %>%
+  summarise_all(~ sum(is.na(.)))
+
+print(missing_values)
+```
+
+Some columns have significantly high number of missing values, given that the dataset contains 257041 observations.
+
+Some of the ways to handle missing values include:
+
+-   Deleting the the rows with missing values
+
+-   Imputing the the missing values, eg. mean imputation
+
+-   Interpolation and Extrapolation
+
+-   Forward Fill and Backward Fill (Time-Series Data)
+
+We choose to remove the rows with missing values.
+
+```{r}
+
+# Remove rows with missing values in "MINE_EXPER" column
+# is.na() returns the rows with missing or null values
+# The ! means filter out those rows without missing values
+cleaned_data  <- cleaned_data %>%
+  filter(!is.na(MINE_EXPER))
+```
+
+If you found out that a dataset you about to analyze has a lot of missing values in it, what actions would you take as a data analyst?
+
+#### Converting Data Types
+
+From the output of the `str` function we found out that the ACCIDENT_DT column was wrongly represented as a character instead of date. Lets convert it to a date type.
+
+```{r}
+
+# Convert the column to date-time format
+# Replace "%Y-%m-%d" with the actual date format of your data
+
+cleaned_data <- cleaned_data %>%
+  mutate(ACCIDENT_DT = as.Date(ACCIDENT_DT, format = "%m/%d/%Y"))
+
+```
+
+The `mutate` function from the dplyr package allows us to perform operations on the columns in the dataframe.
+
+#### Select Relevant Data for Analysis
 
 Not all of the data would be helpful in our analysis for example: CAL_YR, CAL_QTR, FISCAL_YR, FISCAL_QTR contains information already capture in the ACCIDENT_DT column. And would not contribute much to our analysis, we can remove these columns so that we can focus on those that matter to us.
 
@@ -237,6 +418,152 @@ The `tidyverse` package has the `select` function that can be used to select the
 
 # Exclude uncessary columns from the dataset
 
-cleaned_data <- mine_accidents %>% 
+cleaned_data <- cleaned_data %>% 
                 select(-c(CAL_YR, CAL_QTR, FISCAL_YR, FISCAL_QTR))
 ```
+
+We have just perform some data cleaning on the dataset, but our data is not 100% clean now, we realize that we did not handle the missing values in all the columns of the data set.
+
+Other data cleaning processes you can undertake to ensure that the dataset is clean.
+
+1.  **Outlier Detection and Handling:**
+
+    -   Identify and address outliers that may skew your analysis. Decide whether to remove, transform, or cap extreme values.
+
+2.  **Standardizing and Scaling:**
+
+    -   Standardize or scale variables if needed. This is important when variables have different units or scales. Common techniques include z-score standardization and min-max scaling.
+
+3.  **Encoding Categorical Data:**
+
+    -   Convert categorical variables into a suitable format for analysis. You can use one-hot encoding, label encoding, or other encoding techniques depending on the data and analysis methods.
+
+4.  **Handling Inconsistent Data:**
+
+    -   Check for inconsistencies in data, such as inconsistent capitalization, spelling, or formatting in text data. Standardize text data if necessary.
+
+5.  **Dealing with Data Transformation:**
+
+    -   If your data involves text or unstructured information, you might need to perform data transformation tasks like text cleaning, stemming, or tokenization.
+
+6.  **Dealing with Data Integrity Issues:**
+
+    -   Ensure that unique identifiers or keys are unique and consistent across datasets. Resolve discrepancies if multiple data sources are integrated.
+
+7.  **Data Validation:**
+
+    -   Cross-check data against external sources or validation rules to ensure accuracy. Data validation is especially critical for financial, healthcare, and scientific datasets.
+
+8.  **Documentation:**
+
+    -   Keep detailed records of all data cleaning steps, including the reasoning behind each decision. This helps with transparency and reproducibility.
+
+9.  **Data Sampling:**
+
+    -   If the dataset is large, consider using data sampling techniques to work with a smaller, representative subset for initial analysis.
+
+Data cleaning is an iterative process, and the specific steps you take will depend on your dataset's characteristics and the goals of your analysis. Thorough data cleaning enhances the quality and reliability of your analysis results, making it a critical step in the data analysis workflow.
+
+#### Exploratory Data Analysis (Graphics)
+
+Remember the objectives of the analysis?
+
+-   number of accidents occurring at the various mine sites.
+
+-   when they occur and the type of injury sustained.
+
+-   type of mining methods used in those mine sites where the accidents occur so that they can adopt better mining methods at those sites.
+
+Each record in the dataset represents an accident, hence we know from the the unset that there are about 257041 accidents recorded in the dataset.
+
+The UG_LOCATION_CD is a code identifying the underground location where the accident/injury/illness occurred.
+
+UG_LOCATION gives a description of the underground location code where the accident/injury/illness occurred:
+
+-   
+
+    (1) Vertical shaft; (02) Slope/inclined shaft; (03) Face;
+
+-   
+
+    (4) Intersection; (05) Underground shop/office; (06) Last open crosscut;
+
+-   
+
+    (7) Inby permanent support; (08) Haulageway; (09)Other entry (not haulageway);
+
+-   
+
+    (98) Other; (99) Not Marked; (?) No value found.
+
+Lets first aggregate the number of accidents and group them by the location they occurred
+
+```{r}
+
+# Count accidents in each location
+location_counts <- cleaned_data %>% filter(!is.na(UG_LOCATION_CD)) %>%
+  count(UG_LOCATION_CD)
+
+location_counts
+```
+
+Comparing the accidents at each location can be difficult to do by just looking at the numbers. A better way to compare values from different categories is to visualize it.
+
+There are a couple of visualizations we can use to visualize this information:
+
+-   Bar Charts
+
+-   Pie Charts
+
+```{r}
+
+# Create a bar chart
+ggplot(data= cleaned_data, aes(x=UG_LOCATION_CD)) +
+  geom_bar() +
+  labs(title="Accidents at underground locations", x="Locations", y="Accidents") + theme_minimal()
+```
+
+```{r}
+
+# Create a pie chart
+ggplot(data= cleaned_data, aes(x="", fill=UG_LOCATION)) +
+  geom_bar(stat="count") +
+  coord_polar(theta="y") +
+  labs(title="Proportion of accidents at underground locations", x="", y="") +
+  theme_void()
+```
+
+| NB: A pie chart might not provide a good visualization of your data if the number of categories are many.
+
+The stacked chart shows the relative contributions of each category to the whole
+
+```{r}
+
+data_stacked <- cleaned_data %>%
+  group_by(UG_LOCATION) %>%
+  summarise(Count = n())
+
+ggplot(data_stacked, aes(x = "", y = Count, fill = UG_LOCATION)) +
+  geom_bar(stat = "identity") +
+  labs(title = "Accidents at undergrond locations", fill = "Category") +
+  theme_minimal()
+```
+
+Now we can easily ascertain which locations had the most accidents and which had the least.
+
+Lets take a look at what time these accidents occur.
+
+The ACCIDENT_DT column can help us analyse that
+
+```{r}
+
+accident_time = cleaned_data %>% select(ACCIDENT_DT) %>% filter(!is.na(ACCIDENT_DT)) %>% arrange(., ACCIDENT_DT)
+
+head(accident_time, 5)
+```
+```{r}
+ggplot(cleaned_data, aes(x=ACCIDENT_DT)) + 
+  geom_histogram(stat = 'count')
+```
+
+

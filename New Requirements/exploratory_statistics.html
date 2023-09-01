@@ -11,7 +11,7 @@
 
 <meta name="author" content="Dr. Benjamin Odoi" />
 
-<meta name="date" content="2023-08-31" />
+<meta name="date" content="2023-09-01" />
 
 <title>Exploratory Data Analysis</title>
 
@@ -352,39 +352,27 @@ display: none;
 
 <h1 class="title toc-ignore">Exploratory Data Analysis</h1>
 <h4 class="author">Dr. Benjamin Odoi</h4>
-<h4 class="date">2023-08-31</h4>
+<h4 class="date">2023-09-01</h4>
 
 </div>
 
 
 <div id="installations" class="section level2">
 <h2>Installations</h2>
-<p>Install prerequisite libraries for obtaining summary statistics and
+<p>Install required libraries for obtaining summary statistics and
 plotting graphics.</p>
-<p>Libraries may be installed once unto your system and would require
-updates</p>
 <pre class="r"><code># install.packages(&quot;summarytools&quot;)
 # install.packages(&quot;tidyverse&quot;)
-# install.packages(&quot;ggplot2&quot;)</code></pre>
+# install.packages(&quot;ggplot2&quot;)
+# install.packages(&quot;moments&quot;)</code></pre>
 </div>
 <div id="loading-libaries" class="section level2">
 <h2>Loading Libaries</h2>
 <pre class="r"><code>library(summarytools)
-library(tidyverse)</code></pre>
-<pre><code>## ── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
-## ✔ dplyr     1.1.2     ✔ readr     2.1.4
-## ✔ forcats   1.0.0     ✔ stringr   1.5.0
-## ✔ ggplot2   3.4.3     ✔ tibble    3.2.1
-## ✔ lubridate 1.9.2     ✔ tidyr     1.3.0
-## ✔ purrr     1.0.2     
-## ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
-## ✖ dplyr::filter() masks stats::filter()
-## ✖ dplyr::lag()    masks stats::lag()
-## ✖ tibble::view()  masks summarytools::view()
-## ℹ Use the conflicted package (&lt;http://conflicted.r-lib.org/&gt;) to force all conflicts to become errors</code></pre>
-<pre class="r"><code>library(corrplot)</code></pre>
-<pre><code>## corrplot 0.92 loaded</code></pre>
-<pre class="r"><code>library(ggplot2)</code></pre>
+library(tidyverse)
+library(corrplot)
+library(ggplot2)
+library(dplyr)</code></pre>
 <div id="load-data-for-exploration" class="section level3">
 <h3>Load Data for Exploration</h3>
 <p>This dataset contains information on all accidents, injuries and
@@ -398,11 +386,11 @@ degree of injury.</p>
 <li><p>Link: <a href="https://arlweb.msha.gov/opengovernmentdata/DataSets/Accidents.zip" class="uri">https://arlweb.msha.gov/opengovernmentdata/DataSets/Accidents.zip</a></p></li>
 <li><p>The file was downloaded and unzipped to make the files available
 for the analysis</p></li>
-<li><p>The data set was in text format but was converted to a csv file
+<li><p>The dataset was in text format but was converted to a csv file
 using the excel software, this was required as the it was cumbersome for
-R to read the data directly. This is an optional step you might want to
-consider in the process of transforming your data into a format that is
-easy to work with your analysis tools.</p></li>
+R to read the text file directly. This is an optional step you might
+want to consider in the process of converting your file into a format
+that is easy to work with your analysis tools.</p></li>
 </ul>
 <pre class="r"><code>path_to_file &lt;- &quot;C:/Users/Student/Downloads/Datasets Doi/Accidents.csv&quot;
 mine_accidents &lt;- read.csv(path_to_file, header=TRUE, sep = &#39;,&#39;) # The dataset is loaded into a dataframe which is easier to work with.
@@ -410,239 +398,97 @@ attach(mine_accidents)</code></pre>
 </div>
 <div id="analysis-process" class="section level3">
 <h3><strong>Analysis Process</strong></h3>
-<p>In order to gain the most out of the data set we would follow a
-simple framework to guide us in the analysis. The framework is as
-follows:</p>
+<p>In order to gain the most out of the dataset we would follow a simple
+framework to guide us in the analysis. The framework is as follows:</p>
 <ol style="list-style-type: decimal">
 <li><p>Identify the problem, or question we want to solve or answer
 using the data</p></li>
-<li><p>Identify the data available to us that could be useful in solving
+<li><p>Identify the data available to us, that can be useful in solving
 the problem.</p></li>
 <li><p>Prepare the data set to ensure it is, relevant, complete and
 accurate</p></li>
 </ol>
 <p>Before starting with any form of analysis it is important that we
-understand the content of the data set.</p>
+understand the content of the dataset.</p>
 <ul>
 <li>The <code>head</code> function is used to take a snapshot of the
-data set to see some of the values it contains.</li>
+dataset to see some of the values it contains.</li>
 </ul>
 <pre class="r"><code># First 10 observations or rows in the data set
-head(mine_accidents, 10)</code></pre>
-<pre><code>##    MINE_ID CONTROLLER_ID                               CONTROLLER_NAME
-## 1   100003       0041044                                  Lhoist Group
-## 2   100003       0041044                                  Lhoist Group
-## 3   100009        M00024 Legacy Vulcan Corp (Form:Vulcan Materials Co)
-## 4   100011        M11763                                    Imerys S A
-## 5   100011        M11763                                    Imerys S A
-## 6   100011        M11763                                    Imerys S A
-## 7   100016        M09149                                     Cemex S A
-## 8   100027        M02802                                     Vicat S A
-## 9   100027        M02802                                     Vicat S A
-## 10  100027        M02802                                     Vicat S A
-##    OPERATOR_ID                        OPERATOR_NAME CONTRACTOR_ID DOCUMENT_NO
-## 1       L13586 Lhoist North America of Alabama, LLC           MPH 2.20132e+11
-## 2       L13586 Lhoist North America of Alabama, LLC               2.20231e+11
-## 3       L16168   Vulcan Construction Materials, LLC               2.20053e+11
-## 4       L17074                  Imerys Pigments LLC               2.20062e+11
-## 5      0090005                Imerys Carbonates LLC               2.20090e+11
-## 6      0090005                Imerys Carbonates LLC               2.20101e+11
-## 7       L18165                            Cemex Inc               2.20021e+11
-## 8       L12645    National Cement Co., of AL., Inc.               2.20021e+11
-## 9       L12645    National Cement Co., of AL., Inc.               2.20041e+11
-## 10      L12645    National Cement Co., of AL., Inc.               2.20093e+11
-##    SUBUNIT_CD                          SUBUNIT ACCIDENT_DT CAL_YR CAL_QTR
-## 1           3           STRIP, QUARY, OPEN PIT   8/12/2013   2013       3
-## 2           3           STRIP, QUARY, OPEN PIT   3/31/2022   2022       1
-## 3           3           STRIP, QUARY, OPEN PIT  11/13/2005   2005       4
-## 4          30 MILL OPERATION/PREPARATION PLANT   7/14/2006   2006       3
-## 5          30 MILL OPERATION/PREPARATION PLANT    1/8/2009   2009       1
-## 6          30 MILL OPERATION/PREPARATION PLANT   1/14/2010   2010       1
-## 7          30 MILL OPERATION/PREPARATION PLANT    5/3/2002   2002       2
-## 8          30 MILL OPERATION/PREPARATION PLANT    5/3/2002   2002       2
-## 9          30 MILL OPERATION/PREPARATION PLANT   3/31/2004   2004       1
-## 10         30 MILL OPERATION/PREPARATION PLANT  11/28/2009   2009       4
-##    FISCAL_YR FISCAL_QTR ACCIDENT_TIME DEGREE_INJURY_CD
-## 1       2013          4          1815               05
-## 2       2022          2          1430               03
-## 3       2006          1           900               05
-## 4       2006          4           800               06
-## 5       2009          2          1600               06
-## 6       2010          2           540               03
-## 7       2002          3          1245               06
-## 8       2002          3          1000               03
-## 9       2004          2          1230               04
-## 10      2010          1          2200               06
-##                     DEGREE_INJURY FIPS_STATE_CD UG_LOCATION_CD    UG_LOCATION
-## 1   DAYS RESTRICTED ACTIVITY ONLY             1              ? NO VALUE FOUND
-## 2        DAYS AWAY FROM WORK ONLY             1              ? NO VALUE FOUND
-## 3   DAYS RESTRICTED ACTIVITY ONLY             1              ? NO VALUE FOUND
-## 4  NO DYS AWY FRM WRK,NO RSTR ACT             1              ? NO VALUE FOUND
-## 5  NO DYS AWY FRM WRK,NO RSTR ACT             1              ? NO VALUE FOUND
-## 6        DAYS AWAY FROM WORK ONLY             1              ? NO VALUE FOUND
-## 7  NO DYS AWY FRM WRK,NO RSTR ACT             1              ? NO VALUE FOUND
-## 8        DAYS AWAY FROM WORK ONLY             1              ? NO VALUE FOUND
-## 9  DYS AWY FRM WRK &amp; RESTRCTD ACT             1              ? NO VALUE FOUND
-## 10 NO DYS AWY FRM WRK,NO RSTR ACT             1              ? NO VALUE FOUND
-##    UG_MINING_METHOD_CD UG_MINING_METHOD MINING_EQUIP_CD
-## 1                    ?   NO VALUE FOUND              67
-## 2                    ?   NO VALUE FOUND               ?
-## 3                    ?   NO VALUE FOUND              13
-## 4                    ?   NO VALUE FOUND              28
-## 5                    ?   NO VALUE FOUND               ?
-## 6                    ?   NO VALUE FOUND               ?
-## 7                    ?   NO VALUE FOUND               ?
-## 8                    ?   NO VALUE FOUND               ?
-## 9                    ?   NO VALUE FOUND               ?
-## 10                   ?   NO VALUE FOUND              28
-##                                                             MINING_EQUIP
-## 1  Trucks, Service truck, Utility truck, Pickup, Water truck, Fuel truck
-## 2                                                         NO VALUE FOUND
-## 3     Conveyor, Belt feeder, Stage loader, Hopper shaker, Belt structure
-## 4                                               Hand tools (not powered)
-## 5                                                         NO VALUE FOUND
-## 6                                                         NO VALUE FOUND
-## 7                                                         NO VALUE FOUND
-## 8                                                         NO VALUE FOUND
-## 9                                                         NO VALUE FOUND
-## 10                                              Hand tools (not powered)
-##    EQUIP_MFR_CD EQUIP_MFR_NAME EQUIP_MODEL_NO SHIFT_BEGIN_TIME
-## 1           020      Chevrolet         C7H042              700
-## 2             ? NO VALUE FOUND                             600
-## 3           121   Not Reported                             600
-## 4           121   Not Reported                             700
-## 5             ? NO VALUE FOUND                             700
-## 6             ? NO VALUE FOUND                             530
-## 7             ? NO VALUE FOUND              ?              700
-## 8             ? NO VALUE FOUND              ?              600
-## 9             ? NO VALUE FOUND                             600
-## 10          121   Not Reported                            2200
-##    CLASSIFICATION_CD         CLASSIFICATION ACCIDENT_TYPE_CD
-## 1                 18 SLIP OR FALL OF PERSON               12
-## 2                 09  HANDLING OF MATERIALS               27
-## 3                 09  HANDLING OF MATERIALS               24
-## 4                 10 HANDTOOLS (NONPOWERED)               18
-## 5                 18 SLIP OR FALL OF PERSON               17
-## 6                 18 SLIP OR FALL OF PERSON               17
-## 7                 09  HANDLING OF MATERIALS               05
-## 8                 18 SLIP OR FALL OF PERSON               30
-## 9                 18 SLIP OR FALL OF PERSON               18
-## 10                10 HANDTOOLS (NONPOWERED)               30
-##                             ACCIDENT_TYPE NO_INJURIES TOT_EXPER MINE_EXPER
-## 1                       Fall from machine           1      1.00       1.00
-## 2        Over-exertion in lifting objects           1     45.00      20.00
-## 3         Caught in, under or between NEC           1     35.00      35.00
-## 4            Fall onto or against objects           1     20.23      20.23
-## 5  Fall to the walkway or working surface           1     23.69      23.69
-## 6  Fall to the walkway or working surface           1     36.85      36.85
-## 7                 Struck by flying object           1        NA      25.00
-## 8                       Over-exertion NEC           1     26.00      26.00
-## 9            Fall onto or against objects           1      1.08       1.08
-## 10                      Over-exertion NEC           1      5.52       5.52
-##    JOB_EXPER OCCUPATION_CD
-## 1       1.00           304
-## 2      15.00           304
-## 3      35.00           304
-## 4       6.38           374
-## 5      23.69           304
-## 6       0.31           374
-## 7      21.00           304
-## 8       8.00           393
-## 9       1.08           316
-## 10      1.40           316
-##                                                                                               OCCUPATION
-## 1      Maintenance man, Mechanic,  Repair/Serviceman, Boilermaker, Fueler, Tire tech, Field service tech
-## 2      Maintenance man, Mechanic,  Repair/Serviceman, Boilermaker, Fueler, Tire tech, Field service tech
-## 3      Maintenance man, Mechanic,  Repair/Serviceman, Boilermaker, Fueler, Tire tech, Field service tech
-## 4  Warehouseman, Bagger, Palletizer/Stacker, Store keeper, Packager, Fabricator, Cleaning plant operator
-## 5      Maintenance man, Mechanic,  Repair/Serviceman, Boilermaker, Fueler, Tire tech, Field service tech
-## 6  Warehouseman, Bagger, Palletizer/Stacker, Store keeper, Packager, Fabricator, Cleaning plant operator
-## 7      Maintenance man, Mechanic,  Repair/Serviceman, Boilermaker, Fueler, Tire tech, Field service tech
-## 8                                                                                 Weighman, Scale person
-## 9                          Laborer, Blacksmith, Bull gang, Parts runner, Roustabout, Pick-up man, Pitman
-## 10                         Laborer, Blacksmith, Bull gang, Parts runner, Roustabout, Pick-up man, Pitman
-##    ACTIVITY_CD                      ACTIVITY INJURY_SOURCE_CD
-## 1          039           Machine maintenance              117
-## 2          028 Handling supplies or material              035
-## 3          028 Handling supplies or material              038
-## 4          030      Hand tools (not powered)              088
-## 5          039           Machine maintenance              117
-## 6          092              Walking, Running              117
-## 7          039           Machine maintenance              088
-## 8          013      Climb scaffolds, Ladders              072
-## 9          092              Walking, Running              084
-## 10         030      Hand tools (not powered)              010
-##                INJURY_SOURCE NATURE_INJURY_CD             NATURE_INJURY
-## 1                     GROUND              330   SPRAIN,STRAIN RUPT DISC
-## 2             BELT CONVEYORS              330   SPRAIN,STRAIN RUPT DISC
-## 3              CONVEYORS,NEC              220             FRACTURE,CHIP
-## 4  METAL,NEC(PIPE,WIRE,NAIL)              180 CUT,LACER,PUNCT-OPN WOUND
-## 5                     GROUND              180 CUT,LACER,PUNCT-OPN WOUND
-## 6                     GROUND              330   SPRAIN,STRAIN RUPT DISC
-## 7  METAL,NEC(PIPE,WIRE,NAIL)              180 CUT,LACER,PUNCT-OPN WOUND
-## 8                LADDERS,NEC              330   SPRAIN,STRAIN RUPT DISC
-## 9     STEEL RAIL (ALL KINDS)              330   SPRAIN,STRAIN RUPT DISC
-## 10 FLOOR,WALKING SURF-NOT UG              330   SPRAIN,STRAIN RUPT DISC
-##    INJ_BODY_PART_CD                           INJ_BODY_PART SCHEDULE_CHARGE
-## 1               420    BACK (MUSCLES/SPINE/S-CORD/TAILBONE)               0
-## 2               310                                 ARM,NEC               0
-## 3               340                         FINGER(S)/THUMB               0
-## 4               141                        JAW INCLUDE CHIN               0
-## 5               512                            KNEE/PATELLA               0
-## 6               450 SHOULDERS (COLLARBONE/CLAVICLE/SCAPULA)               0
-## 7               340                         FINGER(S)/THUMB              NA
-## 8               512                            KNEE/PATELLA              NA
-## 9               520                                   ANKLE               0
-## 10              520                                   ANKLE               0
-##    DAYS_RESTRICT DAYS_LOST TRANS_TERM RETURN_TO_WORK_DT IMMED_NOTIFY_CD
-## 1              2         0          N         8/19/2013              ? 
-## 2              0       311          N                                ? 
-## 3             13         0          N         12/1/2005              ? 
-## 4              0         0          N         7/15/2006              ? 
-## 5              0         0          N          1/9/2009              ? 
-## 6              0       366          N          5/1/2011              ? 
-## 7             NA        NA          N          5/6/2002              13
-## 8             NA        15          N         5/28/2002              13
-## 9             45         4          N         6/10/2004              ? 
-## 10             0         0          N        11/29/2009              ? 
-##      IMMED_NOTIFY INVEST_BEGIN_DT
-## 1  NO VALUE FOUND                
-## 2  NO VALUE FOUND                
-## 3  NO VALUE FOUND                
-## 4  NO VALUE FOUND                
-## 5  NO VALUE FOUND                
-## 6  NO VALUE FOUND                
-## 7      NOT MARKED                
-## 8      NOT MARKED                
-## 9  NO VALUE FOUND                
-## 10 NO VALUE FOUND                
-##                                                                                                                                                                                                                                                                                                                                                                NARRATIVE
-## 1                                                                                                                                                                                                                                                                        Employee says he slipped off back of fuel truck and landed on his feet wrong, jarring his back.
-## 2  After changing out conveyor return rollers the injured when to dispose of the rollers. While putting the rollers in the dumpster the injured stated that they felt a strain in right arm. The injured did not report the possible injury to management. Around two weeks later, the injured reported the injury to their Manager. Injured had surgery on 4/3/2023.   
-## 3              2 employees were attempting to load troughing rollers onto a service truck for repairs.  Co-worker was placing the roller onto the truck, the injured employee yelled to hold up caused the injured employee to get his left ring finger caught.  He pulled his finger out; peeling his nail off and received a fracture and laceration to end of finger.
-## 4                                                                                                                                                                                                                                      Employee was pushing against pry bar. Bar slipped and employee fell forward striking left jaw on angle iron. Required 4 stitches.
-## 5                                                                                                                                                                                                                                                                                        Employee tripped on c-channel at #6 silo.  Fell on channel striking right knee.
-## 6                                                                                                                                                                                                                                                                                                         Ground was icy.  Employee slipped on ice and fell on left arm.
-## 7                                                                                                                                                                                                                                      EE WAS SCREWING AN ATTACHMENT INTO A SPRING. THE SPRING BROKE, FLYING BACK CUTTING THE EE LEFT MIDDLE KNUCKLE. HE HAD 3 STITCHES.
-## 8                                                                                                                                                                         THE EE HAD TO CLIMB UP &amp; DOWN A LADDER SEVERAL TIMES TO INSPECT THE AIR SYSTEM. THE LAST TIME THAT HE CAME DOWN HE FELT HIS KNEE GIVE OUT. THE SUPERVISOR WAS STANDING THERE WHEN IT HAPPENED.
-## 9                                                                                                                                                               The employee was walking to the storeroom after lunch. As he was crossing the railroad tracks his foot slipped and went into a hole in the top of the switch cover. he fell and twisted his right ankle.
-## 10                                                                                                                                                                                                                                                    EE attempting to move shaft with pipe wrench, which slipped causing EE to twist ankle and injure nose on handrail.
-##    CLOSED_DOC_NO COAL_METAL_IND
-## 1             NA              M
-## 2             NA              M
-## 3    3.20053e+11              M
-## 4             NA              M
-## 5             NA              M
-## 6             NA              M
-## 7    3.20021e+11              M
-## 8    3.20022e+11              M
-## 9    3.20042e+11              M
-## 10            NA              M</code></pre>
-<p>We have a lot of columns in our data set, it would be appropriate for
-us to see all the coulnms available and understand what they mean.</p>
+head(mine_accidents, 3)</code></pre>
+<pre><code>##   MINE_ID CONTROLLER_ID                               CONTROLLER_NAME
+## 1  100003       0041044                                  Lhoist Group
+## 2  100003       0041044                                  Lhoist Group
+## 3  100009        M00024 Legacy Vulcan Corp (Form:Vulcan Materials Co)
+##   OPERATOR_ID                        OPERATOR_NAME CONTRACTOR_ID DOCUMENT_NO
+## 1      L13586 Lhoist North America of Alabama, LLC           MPH 2.20132e+11
+## 2      L13586 Lhoist North America of Alabama, LLC               2.20231e+11
+## 3      L16168   Vulcan Construction Materials, LLC               2.20053e+11
+##   SUBUNIT_CD                SUBUNIT ACCIDENT_DT CAL_YR CAL_QTR FISCAL_YR
+## 1          3 STRIP, QUARY, OPEN PIT   8/12/2013   2013       3      2013
+## 2          3 STRIP, QUARY, OPEN PIT   3/31/2022   2022       1      2022
+## 3          3 STRIP, QUARY, OPEN PIT  11/13/2005   2005       4      2006
+##   FISCAL_QTR ACCIDENT_TIME DEGREE_INJURY_CD                 DEGREE_INJURY
+## 1          4          1815               05 DAYS RESTRICTED ACTIVITY ONLY
+## 2          2          1430               03      DAYS AWAY FROM WORK ONLY
+## 3          1           900               05 DAYS RESTRICTED ACTIVITY ONLY
+##   FIPS_STATE_CD UG_LOCATION_CD    UG_LOCATION UG_MINING_METHOD_CD
+## 1             1              ? NO VALUE FOUND                   ?
+## 2             1              ? NO VALUE FOUND                   ?
+## 3             1              ? NO VALUE FOUND                   ?
+##   UG_MINING_METHOD MINING_EQUIP_CD
+## 1   NO VALUE FOUND              67
+## 2   NO VALUE FOUND               ?
+## 3   NO VALUE FOUND              13
+##                                                            MINING_EQUIP
+## 1 Trucks, Service truck, Utility truck, Pickup, Water truck, Fuel truck
+## 2                                                        NO VALUE FOUND
+## 3    Conveyor, Belt feeder, Stage loader, Hopper shaker, Belt structure
+##   EQUIP_MFR_CD EQUIP_MFR_NAME EQUIP_MODEL_NO SHIFT_BEGIN_TIME CLASSIFICATION_CD
+## 1          020      Chevrolet         C7H042              700                18
+## 2            ? NO VALUE FOUND                             600                09
+## 3          121   Not Reported                             600                09
+##           CLASSIFICATION ACCIDENT_TYPE_CD                    ACCIDENT_TYPE
+## 1 SLIP OR FALL OF PERSON               12                Fall from machine
+## 2  HANDLING OF MATERIALS               27 Over-exertion in lifting objects
+## 3  HANDLING OF MATERIALS               24  Caught in, under or between NEC
+##   NO_INJURIES TOT_EXPER MINE_EXPER JOB_EXPER OCCUPATION_CD
+## 1           1         1          1         1           304
+## 2           1        45         20        15           304
+## 3           1        35         35        35           304
+##                                                                                          OCCUPATION
+## 1 Maintenance man, Mechanic,  Repair/Serviceman, Boilermaker, Fueler, Tire tech, Field service tech
+## 2 Maintenance man, Mechanic,  Repair/Serviceman, Boilermaker, Fueler, Tire tech, Field service tech
+## 3 Maintenance man, Mechanic,  Repair/Serviceman, Boilermaker, Fueler, Tire tech, Field service tech
+##   ACTIVITY_CD                      ACTIVITY INJURY_SOURCE_CD  INJURY_SOURCE
+## 1         039           Machine maintenance              117         GROUND
+## 2         028 Handling supplies or material              035 BELT CONVEYORS
+## 3         028 Handling supplies or material              038  CONVEYORS,NEC
+##   NATURE_INJURY_CD           NATURE_INJURY INJ_BODY_PART_CD
+## 1              330 SPRAIN,STRAIN RUPT DISC              420
+## 2              330 SPRAIN,STRAIN RUPT DISC              310
+## 3              220           FRACTURE,CHIP              340
+##                          INJ_BODY_PART SCHEDULE_CHARGE DAYS_RESTRICT DAYS_LOST
+## 1 BACK (MUSCLES/SPINE/S-CORD/TAILBONE)               0             2         0
+## 2                              ARM,NEC               0             0       311
+## 3                      FINGER(S)/THUMB               0            13         0
+##   TRANS_TERM RETURN_TO_WORK_DT IMMED_NOTIFY_CD   IMMED_NOTIFY INVEST_BEGIN_DT
+## 1          N         8/19/2013              ?  NO VALUE FOUND                
+## 2          N                                ?  NO VALUE FOUND                
+## 3          N         12/1/2005              ?  NO VALUE FOUND                
+##                                                                                                                                                                                                                                                                                                                                                               NARRATIVE
+## 1                                                                                                                                                                                                                                                                       Employee says he slipped off back of fuel truck and landed on his feet wrong, jarring his back.
+## 2 After changing out conveyor return rollers the injured when to dispose of the rollers. While putting the rollers in the dumpster the injured stated that they felt a strain in right arm. The injured did not report the possible injury to management. Around two weeks later, the injured reported the injury to their Manager. Injured had surgery on 4/3/2023.   
+## 3             2 employees were attempting to load troughing rollers onto a service truck for repairs.  Co-worker was placing the roller onto the truck, the injured employee yelled to hold up caused the injured employee to get his left ring finger caught.  He pulled his finger out; peeling his nail off and received a fracture and laceration to end of finger.
+##   CLOSED_DOC_NO COAL_METAL_IND
+## 1            NA              M
+## 2            NA              M
+## 3   3.20053e+11              M</code></pre>
+<p>We have a lot of columns in our dataset, it would be appropriate for
+us to see all the columns available and understand what they mean.</p>
 <ul>
-<li>The <code>names</code> function gives all the column headings
-present in the data set.</li>
+<li>The <code>names</code> function gives the names of all the columns
+present in the dataset.</li>
 </ul>
 <pre class="r"><code>names(mine_accidents)</code></pre>
 <pre><code>##  [1] &quot;MINE_ID&quot;             &quot;CONTROLLER_ID&quot;       &quot;CONTROLLER_NAME&quot;    
@@ -710,56 +556,46 @@ Shortwall; (03) Conventional Stoping; (05) Continuous Miner; (06) Hand;
 <p>The <code>str</code> functions is handy in obtaining a description of
 the data set.</p>
 <p>The output of this function shows the data types of the variables.
-This is are chance to identify any miss representations of the data in
+This is our chance to identify any miss representations of the data in
 our data frame, example: date column being formatted as a character.</p>
 <blockquote>
 <p><strong>Data types</strong></p>
 <ol style="list-style-type: decimal">
-<li><p><strong>Numeric (double):</strong> Represents numeric values,
-including both integers and decimals. Example:
-<strong><code>3.14</code></strong>, <strong><code>123</code></strong>,
-<strong><code>-0.5</code></strong></p></li>
-<li><p><strong>Integer:</strong> Represents whole numbers (integers).
-Example: <strong><code>10</code></strong>,
-<strong><code>-42</code></strong>,
-<strong><code>0</code></strong></p></li>
-<li><p><strong>Character (char):</strong> Represents strings of text or
-characters. Example: <strong><code>&quot;Hello, world!&quot;</code></strong>,
-<strong><code>&quot;John Doe&quot;</code></strong>,
-<strong><code>&quot;R Programming&quot;</code></strong></p></li>
-<li><p><strong>Logical (logical):</strong> Represents Boolean values,
-<strong><code>TRUE</code></strong> or
-<strong><code>FALSE</code></strong>. Example:
-<strong><code>TRUE</code></strong>,
-<strong><code>FALSE</code></strong></p></li>
-<li><p><strong>Factor:</strong> Represents categorical data with levels
-or categories. Example:
-<strong><code>factor(&quot;Male&quot;, levels = c(&quot;Male&quot;, &quot;Female&quot;))</code></strong></p></li>
-<li><p><strong>Date:</strong> Represents date values. Example:
-<strong><code>as.Date(&quot;2023-08-28&quot;)</code></strong></p></li>
-<li><p><strong>POSIXct and POSIXlt:</strong> Represent date and time
-values with time zone information. Example:
-<strong><code>as.POSIXct(&quot;2023-08-28 14:30:00&quot;, tz = &quot;UTC&quot;)</code></strong></p></li>
-<li><p><strong>Complex:</strong> Represents complex numbers with real
-and imaginary parts. Example: <strong><code>1 + 2i</code></strong>,
-<strong><code>-3 + 4i</code></strong></p></li>
-<li><p><strong>Raw:</strong> Represents raw bytes of data. Example:
-<strong><code>as.raw(c(0x41, 0x42, 0x43))</code></strong></p></li>
-<li><p><strong>Lists:</strong> Ordered collections of objects (can be of
-different types). Example:
-<strong><code>list(1, &quot;apple&quot;, TRUE, c(1, 2, 3))</code></strong></p></li>
-<li><p><strong>Vectors:</strong> Basic building blocks in R, can hold
-values of the same type. Example:
-<strong><code>c(1, 2, 3, 4, 5)</code></strong></p></li>
-<li><p><strong>Matrices:</strong> 2-dimensional arrays with rows and
-columns. Example:
-<strong><code>matrix(c(1, 2, 3, 4), nrow = 2, ncol = 2)</code></strong></p></li>
-<li><p><strong>Arrays:</strong> Multi-dimensional generalization of
-matrices. Example:
-<strong><code>array(1:24, dim = c(2, 3, 4))</code></strong></p></li>
-<li><p><strong>Data Frames:</strong> Tabular data structures with rows
-and named columns (like a spreadsheet). Example:
-<strong><code>data.frame(Name = c(&quot;Alice&quot;, &quot;Bob&quot;), Age = c(25, 30))</code></strong></p></li>
+<li><p>Numeric (double): Represents numeric values, including both
+integers and decimals. Example: <code>3.14</code>, <code>123</code>,
+<code>-0.5</code></p></li>
+<li><p>Integer: Represents whole numbers (integers). Example:
+<code>10</code>, <code>-42</code>, <code>0</code></p></li>
+<li><p>Character (char): Represents strings of text or characters.
+Example: <code>&quot;Hello, world!&quot;</code>, <code>&quot;John Doe&quot;</code>,
+<code>&quot;R Programming&quot;</code></p></li>
+<li><p>Logical (logical): Represents Boolean values, <code>TRUE</code>
+or <code>FALSE</code>. Example: <code>TRUE</code>,
+<code>FALSE</code></p></li>
+<li><p>Factor: Represents categorical data with levels or categories.
+Example:
+<code>factor(&quot;Male&quot;, levels = c(&quot;Male&quot;, &quot;Female&quot;))</code></p></li>
+<li><p>Date: Represents date values. Example:
+<code>as.Date(&quot;2023-08-28&quot;)</code></p></li>
+<li><p>POSIXct and POSIXlt: Represent date and time values with time
+zone information. Example:
+<code>as.POSIXct(&quot;2023-08-28 14:30:00&quot;, tz = &quot;UTC&quot;)</code></p></li>
+<li><p>Complex: Represents complex numbers with real and imaginary
+parts. Example: <code>1 + 2i</code>, <code>-3 + 4i</code></p></li>
+<li><p>Raw: Represents raw bytes of data. Example:
+<code>as.raw(c(0x41, 0x42, 0x43))</code></p></li>
+<li><p>Lists: Ordered collections of objects (can be of different
+types). Example:
+<code>list(1, &quot;apple&quot;, TRUE, c(1, 2, 3))</code></p></li>
+<li><p>Vectors: Basic building blocks in R, can hold values of the same
+type. Example: <code>c(1, 2, 3, 4, 5)</code></p></li>
+<li><p>Matrices: 2-dimensional arrays with rows and columns. Example:
+<code>matrix(c(1, 2, 3, 4), nrow = 2, ncol = 2)</code></p></li>
+<li><p>Arrays: Multi-dimensional generalization of matrices. Example:
+<code>array(1:24, dim = c(2, 3, 4))</code></p></li>
+<li><p>Data Frames: Tabular data structures with rows and named columns
+(like a spreadsheet). Example:
+<code>data.frame(Name = c(&quot;Alice&quot;, &quot;Bob&quot;), Age = c(25, 30))</code></p></li>
 </ol>
 </blockquote>
 <pre class="r"><code>str(mine_accidents)</code></pre>
@@ -823,14 +659,14 @@ and named columns (like a spreadsheet). Example:
 ##  $ COAL_METAL_IND     : chr  &quot;M&quot; &quot;M&quot; &quot;M&quot; &quot;M&quot; ...</code></pre>
 <p>From the output we observe that ACCIDENT_DT is being represented as a
 character instead of a date type. we would later see how to convert it
-to the appropriate type</p>
+to the appropriate type.</p>
 <p>The above step is necessary as it allows us to:</p>
 <ol style="list-style-type: decimal">
 <li><p>better understand the data we want to work with.</p></li>
-<li><p>identify which columns that might contain the data you believe
-can help you answer your analysis question.</p></li>
+<li><p>identify those columns that might contain the data we believe can
+help us answer the analysis question.</p></li>
 <li><p>select the data you want to work with.</p></li>
-<li><p>transform the misreprented data types to the appropriate types
+<li><p>convert the misrepresented data types to the appropriate types
 for the analysis</p></li>
 </ol>
 </div>
@@ -842,7 +678,7 @@ occurring at the various mine sites. They would want to understand where
 the accidents are occurring , when they occur and the type of injury
 sustained.</p>
 <p>They want to also understand the type of mining methods used in those
-mine sites where the accidents occure so that they can adopt better
+mine sites where the accidents occur so that they can adopt better
 mining methods at those sites.</p>
 </blockquote>
 <p>The insight you gain from this analysis would help your stakeholders
@@ -854,6 +690,485 @@ start processing data for analysis.</p>
 </div>
 <div id="data-cleaning" class="section level3">
 <h3>Data Cleaning</h3>
+<p>Before we can clean the data we must first know what sort of ‘dirt’
+is in the data, the above step of describing the data set helped us
+identify some issues like :</p>
+<ul>
+<li><p>Wrong data types of columns and</p></li>
+<li><p>Missing values (?).</p></li>
+</ul>
+<div id="summary-statistics" class="section level4">
+<h4>Summary Statistics</h4>
+<p>Our next step involves using summary statistics to understand our
+data.</p>
+<p>The summary function gives a statistical summary of the data</p>
+<blockquote>
+<ul>
+<li><p>Min: The minimum value in the data.</p></li>
+<li><p>1st Qu: The first quartile, also known as the 25th
+percentile.</p></li>
+<li><p>Median: The median, which is the 50th percentile.</p></li>
+<li><p>Mean: The arithmetic mean (average) of the data.</p></li>
+<li><p>3rd Qu: The third quartile, or the 75th percentile.</p></li>
+<li><p>Max: The maximum value in the data.</p></li>
+<li><p>NA’s: The count of missing values.</p></li>
+</ul>
+</blockquote>
+<pre class="r"><code># Display summary using summary() function
+data_summary &lt;- summary(mine_accidents)
+print(data_summary)</code></pre>
+<pre><code>##     MINE_ID        CONTROLLER_ID      CONTROLLER_NAME    OPERATOR_ID       
+##  Min.   : 100003   Length:257041      Length:257041      Length:257041     
+##  1st Qu.:1202418   Class :character   Class :character   Class :character  
+##  Median :2700083   Mode  :character   Mode  :character   Mode  :character  
+##  Mean   :2690853                                                           
+##  3rd Qu.:4400093                                                           
+##  Max.   :6900001                                                           
+##                                                                            
+##  OPERATOR_NAME      CONTRACTOR_ID       DOCUMENT_NO          SUBUNIT_CD    
+##  Length:257041      Length:257041      Min.   :2.200e+11   Min.   : 1.000  
+##  Class :character   Class :character   1st Qu.:2.200e+11   1st Qu.: 1.000  
+##  Mode  :character   Mode  :character   Median :2.201e+11   Median : 3.000  
+##                                        Mean   :2.201e+11   Mean   : 9.485  
+##                                        3rd Qu.:2.201e+11   3rd Qu.:30.000  
+##                                        Max.   :2.202e+11   Max.   :99.000  
+##                                                                            
+##    SUBUNIT          ACCIDENT_DT            CAL_YR        CAL_QTR    
+##  Length:257041      Length:257041      Min.   :2000   Min.   :1.00  
+##  Class :character   Class :character   1st Qu.:2003   1st Qu.:1.00  
+##  Mode  :character   Mode  :character   Median :2008   Median :2.00  
+##                                        Mean   :2009   Mean   :2.46  
+##                                        3rd Qu.:2014   3rd Qu.:3.00  
+##                                        Max.   :2023   Max.   :4.00  
+##                                                                     
+##    FISCAL_YR      FISCAL_QTR    ACCIDENT_TIME  DEGREE_INJURY_CD  
+##  Min.   :2000   Min.   :1.000   Min.   :   0   Length:257041     
+##  1st Qu.:2004   1st Qu.:2.000   1st Qu.: 845   Class :character  
+##  Median :2008   Median :3.000   Median :1220   Mode  :character  
+##  Mean   :2009   Mean   :2.581   Mean   :1867                     
+##  3rd Qu.:2014   3rd Qu.:4.000   3rd Qu.:1730                     
+##  Max.   :2023   Max.   :4.000   Max.   :9999                     
+##                                 NA&#39;s   :1                        
+##  DEGREE_INJURY      FIPS_STATE_CD   UG_LOCATION_CD     UG_LOCATION       
+##  Length:257041      Min.   : 1.00   Length:257041      Length:257041     
+##  Class :character   1st Qu.:18.00   Class :character   Class :character  
+##  Mode  :character   Median :32.00   Mode  :character   Mode  :character  
+##                     Mean   :32.32                                        
+##                     3rd Qu.:49.00                                        
+##                     Max.   :78.00                                        
+##                                                                          
+##  UG_MINING_METHOD_CD UG_MINING_METHOD   MINING_EQUIP_CD    MINING_EQUIP      
+##  Length:257041       Length:257041      Length:257041      Length:257041     
+##  Class :character    Class :character   Class :character   Class :character  
+##  Mode  :character    Mode  :character   Mode  :character   Mode  :character  
+##                                                                              
+##                                                                              
+##                                                                              
+##                                                                              
+##  EQUIP_MFR_CD       EQUIP_MFR_NAME     EQUIP_MODEL_NO     SHIFT_BEGIN_TIME
+##  Length:257041      Length:257041      Length:257041      Min.   :   0    
+##  Class :character   Class :character   Class :character   1st Qu.: 630    
+##  Mode  :character   Mode  :character   Mode  :character   Median : 700    
+##                                                           Mean   :1326    
+##                                                           3rd Qu.:1530    
+##                                                           Max.   :9999    
+##                                                           NA&#39;s   :990     
+##  CLASSIFICATION_CD  CLASSIFICATION     ACCIDENT_TYPE_CD   ACCIDENT_TYPE     
+##  Length:257041      Length:257041      Length:257041      Length:257041     
+##  Class :character   Class :character   Class :character   Class :character  
+##  Mode  :character   Mode  :character   Mode  :character   Mode  :character  
+##                                                                             
+##                                                                             
+##                                                                             
+##                                                                             
+##   NO_INJURIES        TOT_EXPER       MINE_EXPER      JOB_EXPER     
+##  Min.   : 0.0000   Min.   : 0.01   Min.   : 0.01   Min.   :  0.01  
+##  1st Qu.: 1.0000   1st Qu.: 2.00   1st Qu.: 0.69   1st Qu.:  1.00  
+##  Median : 1.0000   Median : 7.00   Median : 2.85   Median :  3.31  
+##  Mean   : 0.9116   Mean   :11.11   Mean   : 6.53   Mean   :  7.10  
+##  3rd Qu.: 1.0000   3rd Qu.:18.50   3rd Qu.: 8.62   3rd Qu.: 10.00  
+##  Max.   :40.0000   Max.   :95.04   Max.   :65.00   Max.   :675.00  
+##  NA&#39;s   :24        NA&#39;s   :42718   NA&#39;s   :39791   NA&#39;s   :39010   
+##  OCCUPATION_CD       OCCUPATION        ACTIVITY_CD          ACTIVITY        
+##  Length:257041      Length:257041      Length:257041      Length:257041     
+##  Class :character   Class :character   Class :character   Class :character  
+##  Mode  :character   Mode  :character   Mode  :character   Mode  :character  
+##                                                                             
+##                                                                             
+##                                                                             
+##                                                                             
+##  INJURY_SOURCE_CD   INJURY_SOURCE      NATURE_INJURY_CD   NATURE_INJURY     
+##  Length:257041      Length:257041      Length:257041      Length:257041     
+##  Class :character   Class :character   Class :character   Class :character  
+##  Mode  :character   Mode  :character   Mode  :character   Mode  :character  
+##                                                                             
+##                                                                             
+##                                                                             
+##                                                                             
+##  INJ_BODY_PART_CD   INJ_BODY_PART      SCHEDULE_CHARGE   DAYS_RESTRICT    
+##  Length:257041      Length:257041      Min.   :   0.00   Min.   :   0.00  
+##  Class :character   Class :character   1st Qu.:   0.00   1st Qu.:   0.00  
+##  Mode  :character   Mode  :character   Median :   0.00   Median :   0.00  
+##                                        Mean   :  69.56   Mean   :   8.84  
+##                                        3rd Qu.:   0.00   3rd Qu.:   4.00  
+##                                        Max.   :6000.00   Max.   :2896.00  
+##                                        NA&#39;s   :65035     NA&#39;s   :59855    
+##    DAYS_LOST        TRANS_TERM        RETURN_TO_WORK_DT  IMMED_NOTIFY_CD   
+##  Min.   :   0.00   Length:257041      Length:257041      Length:257041     
+##  1st Qu.:   0.00   Class :character   Class :character   Class :character  
+##  Median :   0.00   Mode  :character   Mode  :character   Mode  :character  
+##  Mean   :  27.51                                                           
+##  3rd Qu.:  22.00                                                           
+##  Max.   :2470.00                                                           
+##  NA&#39;s   :44770                                                             
+##  IMMED_NOTIFY       INVEST_BEGIN_DT     NARRATIVE         CLOSED_DOC_NO      
+##  Length:257041      Length:257041      Length:257041      Min.   :3.200e+10  
+##  Class :character   Class :character   Class :character   1st Qu.:3.200e+11  
+##  Mode  :character   Mode  :character   Mode  :character   Median :3.201e+11  
+##                                                           Mean   :3.201e+11  
+##                                                           3rd Qu.:3.202e+11  
+##                                                           Max.   :3.202e+11  
+##                                                           NA&#39;s   :143885     
+##  COAL_METAL_IND    
+##  Length:257041     
+##  Class :character  
+##  Mode  :character  
+##                    
+##                    
+##                    
+## </code></pre>
+<p>From the the output we realize that</p>
+<ul>
+<li><p>the years in consideration is from 2000 to 2023</p></li>
+<li><p>the experience of injured mine workers in a mine ranges from less
+than a month to over 65 months.</p></li>
+</ul>
+<p>There a lot of insights to be gleaned from the summary statistics.
+For the purpose of data cleaning we observe that:</p>
+<ol style="list-style-type: decimal">
+<li>most columns contain null values that we must handle using
+appropriate methods.</li>
+</ol>
+<p>The data cleaning processes that we can identify to undertake using
+this information includes:</p>
+<blockquote>
+<ol style="list-style-type: decimal">
+<li><p>Missing Values: The <code>NA&#39;s</code> count in the
+<code>summary()</code> output indicates the number of missing values for
+each variable. Identifying missing values can guide you in deciding how
+to handle them, whether by imputing missing values, removing rows with
+missing values, or using appropriate techniques.</p></li>
+<li><p>Outliers: By looking at the minimum and maximum values, as well
+as quartiles (1st Qu, 3rd Qu), you can identify potential outliers.
+Outliers can be erroneous data points or indicate interesting phenomena.
+You might need to decide whether to keep, transform, or remove
+outliers.</p></li>
+<li><p>Data Distribution: Summary statistics like mean, median, and
+quartiles provide insights into the distribution of the data. Skewed
+distributions might require transformations for normalization.</p></li>
+<li><p>Data Type Mismatches: If summary statistics for a variable don’t
+make sense (e.g., mean and quartiles for a categorical variable), it
+could indicate a data type mismatch that needs correction.</p></li>
+<li><p>Data Range Issues: If the range of values seems unexpected (e.g.,
+negative age values), it might indicate data entry errors that require
+investigation.</p></li>
+<li><p>Data Consistency: Comparing summary statistics across related
+variables (e.g., age and birth year) can help identify inconsistencies
+that need correction.</p></li>
+<li><p>Data Scale: Discrepancies in the scale of variables (e.g., one
+variable is in thousands while another is in single digits) might
+require normalization.</p></li>
+<li><p>Categorical Variables: For categorical variables (factors), the
+<code>summary()</code> output can provide levels and counts, helping you
+identify rare or unexpected categories.</p></li>
+<li><p>Variable Relationships: By comparing summary statistics across
+different variables, you might identify relationships that need further
+exploration or validation.</p></li>
+<li><p>Sampling Errors: If the dataset is a sample, summary statistics
+can help you assess whether it accurately represents the population, or
+if sampling errors are present.</p></li>
+<li><p>Data Consistency: For time-related data, identifying
+irregularities like negative timestamps or future dates can help improve
+data consistency.</p></li>
+</ol>
+</blockquote>
+<p>Other summary statistics that are not provided by the summary
+function can be calculated as follows:</p>
+<div id="standard-deviation-and-variance" class="section level5">
+<h5>Standard Deviation and Variance</h5>
+<pre class="r"><code># Calculate summary statistics for specific columns
+summary_stats &lt;- mine_accidents %&gt;%
+  summarise(
+    # Min_MINE_EXPER = min(MINE_EXPER, na.rm = TRUE),
+    # Max_MINE_EXPER = max(MINE_EXPER, na.rm = TRUE),
+    # Median_MINE_EXPER = median(MINE_EXPER, na.rm = TRUE),
+    # Mean_MINE_EXPER = mean(MINE_EXPER, na.rm = TRUE),
+    SD_MINE_EXPER = sd(MINE_EXPER, na.rm = TRUE),
+    Variance_MINE_EXPER = var(MINE_EXPER, na.rm = TRUE)
+  )
+
+# Print the summary statistics
+print(summary_stats)</code></pre>
+<pre><code>##   SD_MINE_EXPER Variance_MINE_EXPER
+## 1      8.693857            75.58315</code></pre>
+<ul>
+<li><p>A standard deviation of 8.693857 means that, on average, a mine
+worker’s experience deviates from the mean experience by approximately
+8.69 months.</p></li>
+<li><p>A smaller standard deviation suggests that the data points are
+closer to the mean, indicating less variability in experience
+levels.</p></li>
+</ul>
+<pre class="r"><code># Visualize Varience and Standard Deviation with a box and whisker plot
+ggplot(mine_accidents, aes(x = MINE_EXPER)) +
+  geom_boxplot(fill = &quot;blue&quot;, color = &quot;black&quot;) +
+  ggtitle(&quot;Miners  Experience at Accident sites&quot;) +
+  ylab(&quot;Values&quot;)</code></pre>
+<pre><code>## Warning: Removed 39791 rows containing non-finite values (`stat_boxplot()`).</code></pre>
+<p><img src="data:image/png;base64,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" width="672" /></p>
+<blockquote>
+<p>In a box plot, the box represents the IQR, and whiskers extend to the
+minimum and maximum values within 1.5 times the IQR. Any data points
+outside the whiskers are considered potential outliers.</p>
+<ul>
+<li><p>A wider box and longer whiskers indicate higher variance and
+standard deviation.</p></li>
+<li><p>A narrow box and shorter whiskers indicate lower variance and
+standard deviation.</p></li>
+</ul>
+</blockquote>
+<p>What insights do you deduce from the above plot?</p>
+<p>We would later explore the relationship between experience level and
+the rate of accidents.</p>
+</div>
+<div id="skewness-and-kurtosis" class="section level5">
+<h5>Skewness and Kurtosis</h5>
+<pre class="r"><code>library(moments)</code></pre>
+<pre class="r"><code># Calculate skewness and kurtosis for the &quot;Age&quot; column
+skewness_MINE_EXPER &lt;- skewness(mine_accidents$MINE_EXPER, na.rm = TRUE)
+kurtosis_MINE_EXPER &lt;- kurtosis(mine_accidents$MINE_EXPER, na.rm = TRUE)
+
+# Print the results
+print(paste(&quot;Skewness MINE_EXPER:&quot;, skewness_MINE_EXPER))</code></pre>
+<pre><code>## [1] &quot;Skewness MINE_EXPER: 1.84514527002742&quot;</code></pre>
+<pre class="r"><code>print(paste(&quot;Kurtosis MINE_EXPER:&quot;, kurtosis_MINE_EXPER))</code></pre>
+<pre><code>## [1] &quot;Kurtosis MINE_EXPER: 5.89573414638389&quot;</code></pre>
+<ol style="list-style-type: decimal">
+<li><p><strong>Skewness (1.84514527002742):</strong></p>
+<ul>
+<li><p>Skewness measures the asymmetry of the distribution of data.
+Positive skewness (greater than 0) indicates that the data is skewed to
+the right, meaning that the tail on the right side of the distribution
+is longer or fatter than the left side.</p></li>
+<li><p>In the context of mine worker experience, a skewness value of
+1.84514527002742 suggests that there is a right skew in the data. This
+means that there may be a few mine workers with significantly more years
+of experience than the majority of workers, causing the distribution to
+be stretched out to the right.</p></li>
+<li><p>Workers with extensive experience may be considered outliers or
+constitute a minority in the dataset.</p>
+<pre class="r"><code># Visualize skweness by plotting a histogram
+ggplot(mine_accidents, aes(x = MINE_EXPER)) +
+  geom_histogram(binwidth = 5, fill = &quot;blue&quot;, color = &quot;black&quot;, alpha = 0.7) +
+  ggtitle(&quot;Miners Experience at Accident sites&quot;) +
+  xlab(&quot;Months&quot;) + ylab(&quot;Frequency&quot;)</code></pre>
+<pre><code>## Warning: Removed 39791 rows containing non-finite values (`stat_bin()`).</code></pre>
+<p><img src="data:image/png;base64,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LX/bjGlXDv5n82vCO8uNOVl3pJ2+YOWulj8yW3pO2sGV6e9hO+3NymrW/ASmdzL74tVd3vBjA7DAN6CzX/51CWh9dnn9cJteJ3jxVfjvPpscPz7/8cqz9bUBPV58AaU5aam+LlG+ivHj7nPuF4FLX7R+9atXOV76tjnSdYfrfZlu4Kv6u/90+hX5KqbzzF4G635B5bPfT64g/fn8C1ld9mZpNROWfgKzO5n74pVdbv+xAVjgFlBTNp6ZCQBPKAS0EwQUAFYhoJ0goACwCgHtBAEFgFUIaCcIKACsQkA7QUABYBUC2gkCCgCrEFAAABECCgAgQkABAEQIKACACAEFABAhoAAAIgQUAECEgAIAiBBQAAARAgoAIEJAAQBECCgAgAgBBQAQIaAAACJeAf1/5Si68e0wXpnx0oZeQBvGzpAmsLyypWQR0OExXpnx0oZeQBvGzpAmQECb/S648e0wXpnx0oZeQBvGzpAmQECb/S648e0wXpnx0oZeQBvGzpAmQECb/S648e0wXpnx0oZeQBvGzpAmQECb/S648e0wXpnx0oZeQBvGzpAmQECb/S648e0wXpnx0oZeQBvGzpAmQECb/S648e0wXpnx0oZeQBvGzpAmQECb/S648e0wXpnx0oZeQBvGzpAmQECb/S648e0wXpnx0oZeQBvGzpAmQECb/S648e0wXpnx0oZeQBvGzpAmQECb/S648e0wXpnx0oZeQBvGzpAmQECb/S648e0wXpnx0oZeQBvGzpAmQECb/S648e0wXpnx0oZeQBvGzpAmQECb/S648e0wXpnx0oZeQBvGzpAmQECb/S648e0wXpnx0oZeQBvGzpAmQECb/S648e0wXpnx0oZeQBvGzpAmQECb/S648e0wXpnx0oZeQBvGzpAmQECb/S648e0wXpnx0oZeQBvGzpAmQECb/S648e0wXpnx0oZeQBvGzpAmQECb/S648e0wXpnx0oZeQBvGzpAmQECb/S648e0wXpnx0oZeQBvGzpAmQECb/S648e0wXpnx0oZeQBvGzpAmQECb/S648e0wXpnx0oZeQBvGzpAmQECb/S648e0wXpnx0oZeQBvGzpAmQECb/S648e0wXpnx0oZeQBvGzpAmQECb/S648e0wXpnx0oZeQBvGzpAmQECb/S648e0wXpnx0oZeQBvGzpAmQECb/S648e0wXpnx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" width="672" /></p></li>
+</ul></li>
+<li><p><strong>Kurtosis:</strong></p>
+<ul>
+<li><p>Kurtosis measures the tailedness or peakedness of the
+distribution of data. A positive kurtosis value (greater than 3 for the
+normal distribution) indicates that the distribution has heavier tails
+and a sharper peak compared to a normal distribution.</p></li>
+<li><p>In the context of mine worker experience, a kurtosis value of
+5.89573414638389 suggests that the distribution has heavy tails and is
+more peaked than a normal distribution.</p></li>
+<li><p>This can indicate that the dataset has more extreme values or
+outliers compared to a normal distribution, contributing to the heavy
+tails.</p></li>
+</ul></li>
+</ol>
+<pre class="r"><code># Visualize Kurtosis by plotting a Density plot
+ggplot(mine_accidents, aes(x = MINE_EXPER)) +
+ geom_density(fill = &quot;blue&quot;, color = &quot;black&quot;) +
+  ggtitle(&quot;Miners  Experience at Accident sites&quot;) +
+  xlab(&quot;Months&quot;) + ylab(&quot;Density&quot;)</code></pre>
+<pre><code>## Warning: Removed 39791 rows containing non-finite values (`stat_density()`).</code></pre>
+<p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAABUAAAAPACAMAAADDuCPrAAABX1BMVEUAAAAAADoAAGYAAP8AOjoAOmYAOpAAZpAAZrYzMzM6AAA6ADo6OgA6Ojo6OmY6OpA6ZmY6ZpA6ZrY6kJA6kLY6kNtNTU1NTW5NTY5Nbm5Nbo5NbqtNjshmAABmADpmOgBmOjpmZgBmZjpmZmZmZpBmkGZmkJBmkLZmkNtmtrZmtttmtv9uTU1ubk1ubo5ujqtujshuq+SOTU2Obk2Obm6Oq6uOyOSOyP+QOgCQOjqQZgCQZjqQZmaQZpCQkLaQtraQttuQ2/+rbk2rjm6ryOSr5P+2ZgC2Zjq2Zma2kDq2kGa2kJC2tpC2tra2ttu229u22/+2/9u2///Ijk3Ijm7Iq27IyKvI5P/I///bkDrbkGbbtmbbtpDbtrbb27bb29vb2//b/7bb///kq27kyI7kyKvk///r6+v/tmb/yI7/25D/27b/29v/5Kv/5Mj/5OT//7b//8j//9v//+T////ssI9/AAAACXBIWXMAAB2HAAAdhwGP5fFlAAAgAElEQVR4nO2d+5/cd3ndRwYTo2IHu/GY+hIopjjFagwijd1CWyOHpaHhEkRjFFxCrOBINlKs1f7/r879vme/+8z3M3PO7vv9g+Wd2d15z3meOfrOVYMzAAAoMTi2AABAKhQoAEARChQAoAgFCgBQhAIFAChCgQIAFKFAAQCKUKAAAEUoUACAIhQoAEARChQAoAgFCgBQhAIFAChCgQIAFKFAAQCKHLhAHwxGPPOr1ZNOxie9Pfqfz98Y3PhR44te47k+fm1j686cbOZ6MTvUR7/l5f6czrkQgCvDMQp0UpdzRjcwCrQ7H31j94VNYrxk9+1foOfZ7LyQDt8MEMZRCvS5rVMo0E6cvnfehU2u3Zc+vtRv27dAz7fZcSGdvhkgjMMX6Bdvrt3XPBnc+Mr6MWm7i75kwfhxbluP66mPGC9VoJf6u4O78nAVOXyBfum/r96SRrerP3mPAu3IuS306c3Bl37bwzE1BQpwGY5QoL9dvZGOTvgOBdqVc1vo3ijTPiqKAgW4DEco0H9+Y6XJTgbP/D0F2pXzWmj6AGMPT6FToACX4QgF+vHJ8qY0uuU/d/re+pNIJ+MvP/vBzcHgi28tG29ywo0Xfzn7cnTI9fbpT24Obrzwo8mZXxmMvv3FX1x00Zsnju76zu/3jv/37bOpzGffGP26F1Z+2/mXvlIMG9+0+3qc/nSs+sL75/7uNT4anzf6+d/PDcdsF9H0uj3YeCXT9kWtn7JUP/1odIVvvPTxaoFedG3Os9mYxfRCNr556yp3GSCAH8co0AfLW+nohvX2rgL9yWD91nk6P2Hw0rSLxhV2MvuO5ZmDZ3fW0PKit069N7+MscVz0z/enj9h/+LHF1/6ooW2vmnX9Tj7x1mTLFy2fmyFz74+P+/G22eqQKe9d7p+KL91UZunLNTnl3PjR4sCvfja7LbZmsWOAt363d0GCODHMQr08+V9+HujY6YdBfr84gY1/cbxt8x5bvaDs2/60sfTl+LPOP/F5LsLdPybJyffm/7s+Otv37zEpa+8TGfjm3Zcj/EPXvS7l0xfIrtsnnMLdO5wb/Uqbl3U1inzH/t0cX2f+Y+zAu1wbXbbbM1iu0B3/u71HwII4RgFunxJ4Pge/NmOAh0d/P1ydmA0OaQa3/RfGt2N/eP4UOXl+SmDP/v47I+/n9w4x2ee/fFvB+IhvHMeAx3/9MvzO/DzW/ezo7uSv/v66mWde+kr5bXxTTuux/hSnn1/dsh1zu9eMvoFN77z8fiO983Zeec8kDgvztGvX5y9fVFbp8x+2+Qqjx0+mhyInqO149rssNmexfyblt+89bs7DhDAj2MU6OQ548mX43vwOwt0evb4EGx2I5zfN50/zndveVO7tzx2uydeybP1QvrZd57M7ohPv560yXPTg8PZuyP1pc+sd3zT9vUYn7Q8Ghz/344fW7B+3tox4zqLu+7j/5n3z9ZF7bzw+YHtdxa/6LzAd1ybHTbbs9gq0O3f3XGAAH4cpUDHr1qc3JTH9+B3Fei8SU6mt6fVm9XJ9JvvLe87jv732Q73+84r0EkfnKzepZ5f+uymri99Zr3jm7avx0p3nP9jG1nNv1sU6KeLtyYsS3j7onaeMv7jZOkwOxzvdm3OKdCNWWwV6Pbv7jhAAD+OUqDz+/CTe/C7CnTjgGS1Wh4sbuLzdpk041f/1+8vvuidBTo7Y/mgwvJO5PQpFX3pyxba/Kbt67H9KMKOH9vF6EJWHlDc5GTtL4O3579s46K2T5n+trWnnk4W6hdfm10227PYKtDt391xgAB+HKVA5/fhJ/fgdxXovEjuLZ4Z32y+leOYxdkv/E/1Os/zXwd6snjob+OZ7MmFXHDpyxba/Kat6zFWWL+DuuvHNjn9p7/74c2BKNDV55oG8yu5dVE7Tpn+trXfeW/xdP7F12aXzfYsNgt0x+/uOEAAP45ToLP78PcWT3xfqkBnFbyog5Xzn31/58WuXPQOxg00v3u69pkXD3YV6Mal7y7Q8TdtV87WI3y7fmyV301eHjnh/ALdOLTevqO85rB+vacFunzs9cHOAt19bXbabM3iogId/+5uAwTw4zgFOq2p0X/nN5+9CnT8OuzFmZd9Fv5s1kDLI9C147FjFujyZaCqQDd/x/QijlWgW7PoUqDdBgjgx3EKdPJK9PFx6PjW0qlAN9/ruVUHf/w/35i81vDc9wueW6DTu8Arj4Fu34UXl77jgcQZHQv03Hexzu6aP//Vb//8n8VjoKuvXVq8nPVyBbrrLvzF1+b8d2euzmJXge68yhcOEMCPIxXo6Fb/3OiGuHaTOrdAd71De+frXU7V6wjPLdDx0yP/ffVZ+O0nkcSlL59E2vymnY+BLhSmJ6n3nt+bvQz0TD+JtPbq+cXz6NsXtX2KfBLp4muj394+n8WuJ5HOvcpygAB+HKlAR7fa8YeIzP//ggK9t37bX3+hza4CUBe94/RnfjXvneU7k84Wx3by0ldej7T5TdvXY+WVRDPrHT+2YOXnH5x/F37xqszl7914gensonaesqE+/2Wdrs0Omx2z2PUypvXf3XWAAH4cqUDHN51vv7HsLF2gi3pb3mFdf/H14o3l7126QGe9cjJYeYju5cUvm79n8fxLX3k1+sY37aic5WvZZ5W448fmrFyXT8Wz8A827vTOv966qO1TttRP56+W73Ztdr8OdGMWWwW6/bs7DhDAj2MV6OTN0cuP8dAFOnmh0fjtlZM3NW4+STJ9i+L4t47ffXnue6nPKdCT5RHb8gnh8VsWf7d4y6K89NX3T61/047rsXg35eKu6vaPrZpN7sJP3vI4vV47+uVk48fm76navqitU1bVF9f4PK0d12aHzfYsVh/7fPls5+/uOEAAP45VoJOiWv7vBQW6+tTt9Aa2+hjoyodk6GfhNxhf2uIA7sG0LseX9PzGL5OXvuvZ5ek37bge+sNENqpj+Rkfi+dWZt+98iTMyh3zGScrbzddu6hzP0xk6XDjmzs+TOTca7Nts2MWGxfy9jlxrv8QQAjHKtCVt5N3KNCz08XLXGafd7b2JNLiY9pGh2zqojeYPgU9v7Bp8UxkZp+uduMvZj+qLn1x13Trm3Zdj7Pfbn2c3eaPLVn0yo3/PH+Y8MFmx9zb6t0H82/YuqjNU5bqs0q78fbicdhO12bLZscsFhey/Obtq9xpgAB+HK1Alw/5dSnQ8WvKxzeyxacDrz8L/8efTo4aX3hfvJNlZ4GerD+BMn/R0vhziWafYnzRpa88ELjxTbuvx/anHG/82ArTzx0eX6vFL/jt+Kf/bPEds08xXWX5NFj3D1Q++903xqf/cvWJrC7XZsNmwsYslhey8s1bV7nLAAH8OHCB2iNfmQkAsAoFug4FCgCdoUDXoUABoDMU6DoUKAB0hgJdhwIFgM5QoOtQoADQGQp0HQoUADpDgQIAFKFAAQCKUKAAAEUoUACAIhQoAEARChQAoAgFCgBQhAIFAChCgQIAFKFAAQCKUKAAAEUoUACAIhQoAEARChQAoMhBC/RfS1R/7hjkqAalGmSao0qqRSjQluSoBqUaZJqjSqpFKNCW5KgGpRpkmqNKqkUo0JbkqAalGmSao0qqRSjQluSoBqUaZJqjSqpFKNCW5KgGpRpkmqNKqkUo0JbkqAalGmSao0qqRSjQluSoBqUaZJqjSqpFKNCW5KgGpRpkmqNKqkUo0JbkqAalGmSao0qqRSjQluSoBqUaZJqjSqpFKNCW5KgGpRpkmqNKqkUo0JbkqAalGmSao0qqRSjQluSoBqUaZJqjSqpFKNCW5KgGpRpkmqNKqkUo0JbkqAalGmSao0qqRSjQluSoBqUaZJqjSqpFKNCW5KgGpRpkmqNKqkUo0JbkqAalGmSao0qqRSjQluSoBqUaZJqjSqpFKNCW5KgGpRpkmqNKqkUo0JbkqAalGmSao0qqRSjQluSoBqUaZJqjSqpFKNCW5KgGpRpkmqNKqkUo0JbkqAalGmSao0qqRSjQluSoBqUaZJqjSqpFKNCW5KgGpRpkmqNKqkUo0JbkqAalGmSao0qqRSjQluSoBqUaZJqjSqpFKNCW5KgGpRpkmqNKqkUo0JbkqAalGmSao0qqRSjQluSoBqUaZJqjSqpFKNCW5KgGpRpkmqNKqkUo0JbkqAalGmSao0qqRSjQluSoBqUaZJqjSqpFKNCW5KgGpRpkmqNKqkUo0JbkqAalGmSao0qqRWILdDAY9BhDI6xGLfHaSkmQaY4qqRZJLlD/BrUatcRrKyVBpjmqpFqEAm2J1aglXlspCTLNUSXVIsEF+gX/BrUatcRrKyVBpjmqpFqEAm2J1aglXlspCTLNUSXVIhRoS6xGLfHaSkmQaY4qqRahQFtiNWqJ11ZKgkxzVEm1CAXaEqtRS7y2UhJkmqNKqkUo0JZYjVritZWSINMcVVItklqgo/6kQHvEayslQaY5qqRahAJtidWoJV5bKQkyzVEl1SIUaEusRi3x2kpJkGmOKqkWoUBbYjVqiddWSoJMc1RJtQgF2hKrUUu8tlISZJqjSqpFKNCWWI1a4rWVkiDTHFVSLZJcoP4NajVqiddWSoJMc1RJtQgF2hKrUUu8tlISZJqjSqpFQgt00p8UaH94baUkyDRHlVSLUKAtsRq1xGsrJUGmOaqkWoQCbYnVqCVeWykJMs1RJdUiFGhLrEYt8dpKSZBpjiqpFqFAW2I1aonXVkqCTHNUSbUIBdoSq1FLvLZSEmSao0qqRSjQlliNWuK1lZIg0xxVUi1CgbbEatQSr62UBJnmqJJqkcwCnfYnBdofXlspCTLNUSXVIhRoS6xGLfHaSkmQaY4qqRaJLlD7BrUatcRrKyVBpjmqpFqEAm2J1aglXlspCTLNUSXVIhRoS6xGLfHaSkmQaY4qqRY5ZoHWWRbosU0AAOZwBNorVn9XSrz+WpcEmeaokmoRCrQlVqOWeG2lJMg0R5VUi1CgLbEatcRrKyVBpjmqpFqEAm2J1aglXlspCTLNUSXVIhRoS6xGLfHaSkmQaY4qqRahQFtiNWqJ11ZKgkxzVEm1CAXaEqtRS7y2UhJkmqNKqkUo0JZYjVritZWSINMcVVItQoG2xGrUEq+tlASZ5qiSahEKtCVWo5Z4baUkyDRHlVSLUKAtsRq1xGsrJUGmOaqkWoQCbYnVqCVeWykJMs1RJdUiFGhLrEYt8dpKSZBpjiqpFqFAW2I1aonXVkqCTHNUSbUIBdoSq1FLvLZSEmSao0qqRSjQlliNWuK1lZIg0xxVUi2SXaDuDWo1aonXVkqCTHNUSbUIBdoSq1FLvLZSEmSao0qqRSjQlliNWuK1lZIg0xxVUi1CgbbEatQSr62UBJnmqJJqEQq0JVajlnhtpSTINEeVVItEFuiiPynQvvDaSkmQaY4qqRahQFtiNWqJ11ZKgkxzVEm1CAXaEqtRS7y2UhJkmqNKqkUo0JZYjVritZWSINMcVVItQoG2xGrUEq+tlASZ5qiSahEKtCVWo5Z4baUkyDRHlVSLUKAtsRq1xGsrJUGmOaqkWoQCbYnVqCVeWykJMs1RJdUiFGhLrEYt8dpKSZBpjiqpFqFAW2I1aonXVkqCTHNUSbUIBdoSq1FLvLZSEmSao0qqRSjQlliNWuK1lZIg0xxVUi1CgbbEatQSr62UBJnmqJJqEQq0JVajlnhtpSTINEeVVItQoC2xGrXEayslQaY5qqRaJLxAzRvUatQSr62UBJnmqJJqEQq0JVajlnhtpSTINEeVVItQoC2xGrXEayslQaY5qqRahAJtidWoJV5bKQkyzVEl1SIUaEusRi3x2kpJkGmOKqkWoUBbYjVqiddWSoJMc1RJtQgF2hKrUUu8tlISZJqjSqpFKNCWWI1a4rWVkiDTHFVSLUKBtsRq1BKvrZQEmeaokmoRCrQlVqOWeG2lJMg0R5VUi1CgLbEatcRrKyVBpjmqpFqEAm2J1aglXlspCTLNUSXVIokFutKfFGhPeG2lJMg0R5VUi1CgLbEatcRrKyVBpjmqpFqEAm2J1aglXlspCTLNUSXVIhRoS6xGLfHaSkmQaY4qqRahQFtiNWqJ11ZKgkxzVEm1CAXaEqtRS7y2UhJkmqNKqkUo0JZYjVritZWSINMcVVItQoG2xGrUEq+tlASZ5qiSahEKtCVWo5Z4baUkyDRHlVSLUKAtsRq1xGsrJUGmOaqkWoQCbYnVqCVeWykJMs1RJdUiFGhLrEYt8dpKSZBpjiqpFkkvUO8GtRq1xGsrJUGmOaqkWoQCbYnVqCVeWykJMs1RJdUiFGhLrEYt8dpKSZBpjiqpFqFAW2I1aonXVkqCTHNUSbUIBdoSq1FLvLZSEmSao0qqRSjQlliNWuK1lZIg0xxVUi1CgbbEatQSr62UBJnmqJJqEQq0JVajlnhtpSTINEeVVItQoC2xGrXEayslQaY5qqRahAJtidWoJV5bKQkyzVEl1SIUaEusRi3x2kpJkGmOKqkW6aNAn35wazh858PVk/7wV8PhK/OTdpxPgZrhtZWSINMcVVIt0kOBPrk9HPO13yxP+vXklOErPz7nfArUDa+tlASZ5qiSapEeCvTu8LUPzx7fGb72yfyUh8NX/vpsfNKkNLfPp0Dt8NpKSZBpjiqpFtm/QB/dmtTkk9vT480RT+8M3z2bnDT+c/t8CtQPr62UBJnmqJJqkf0L9P7w9dmf35ud8uT27O763fFJ2+dToH54baUkyDRHlVSL7F+gd6eHm6P77a9vn/U9dX7VmALtH6+tlASZ5qiSapG9C/Tpndld80e3Nh/knNxr33H+l2dc+rLmkusFWv01AAC90muBTu68U6AAcE3Yq0A3Xqj0cPIypvPP5y68EV73iyRBpjmqpFqkzwJdPwJ9eOuVd9X5FKgTXlspCTLNUSXVIs0K9P7sZfQUaAReWykJMs1RJdUiexfoOc+y/3o4f9knz8In4LWVkiDTHFVSLbJ/gc5f37n6Os+nd4ev/kacT4G64bWVkiDTHFVSLbJ/ge56p9HdlfdtNn4nknWDWo1a4rWVkiDTHFVSLbJ/gT69M3x1473u91ff977jfArUDq+tlASZ5qiSapH9C/Ts8cqnLT26NTrOnH380pjXN86nQE3x2kpJkGmOKqkW6aFAzx5/MOrHdybHl5MCfThcK9DV8ylQU7y2UhJkmqNKqkX6KNAqReP1/qRAe8FrKyVBpjmqpFqEAm2J1aglXlspCTLNUSXVIhRoS6xGLfHaSkmQaY4qqRahQFtiNWqJ11ZKgkxzVEm1CAXaEqtRS7y2UhJkmqNKqkUo0JZYjVritZWSINMcVVItQoG2xGrUEq+tlASZ5qiSahEKtCVWo5Z4baUkyDRHlVSLUKAtsRq1xGsrJUGmOaqkWoQCbYnVqCVeWykJMs1RJdUiFGhLrEYt8dpKSZBpjiqpFqFAW2I1aonXVkqCTHNUSbUIBdoSq1FLvLZSEmSao0qqRSjQlliNWuK1lZIg0xxVUi1CgbbEatQSr62UBJnmqJJqEQq0JVajlnhtpSTINEeVVItQoC2xGrXEayslQaY5qqRahAJtidWoJV5bKQkyzVEl1SIUaEusRi3x2kpJkGmOKqkWoUBbYjVqiddWSoJMc1RJtQgF2hKrUUu8tlISZJqjSqpF8gvUuUGtRi3x2kpJkGmOKqkWoUBbYjVqiddWSoJMc1RJtQgF2hKrUUu8tlISZJqjSqpFKNCWWI1a4rWVkiDTHFVSLUKBtsRq1BKvrZQEmeaokmoRCrQlVqOWeG2lJMg0R5VUi1CgLbEatcRrKyVBpjmqpFqEAm2J1aglXlspCTLNUSXVIhRoS6xGLfHaSkmQaY4qqRahQFtiNWqJ11ZKgkxzVEm1CAXaEqtRS7y2UhJkmqNKqkUo0JZYjVritZWSINMcVVItQoG2xGrUEq+tlASZ5qiSahEKtCVWo5Z4baUkyDRHlVSLUKAtsRq1xGsrJUGmOaqkWoQCbYnVqCVeWykJMs1RJdUiFGhLrEYt8dpKSZBpjiqpFqFAW2I1aonXVkqCTHNUSbVIYIF+4QsUaO94baUkyDRHlVSLUKAtsRq1xGsrJUGmOaqkWoQCbYnVqCVeWykJMs1RJdUiFGhLrEYt8dpKSZBpjiqpFqFAW2I1aonXVkqCTHNUSbUIBdoSq1FLvLZSEmSao0qqRSjQlliNWuK1lZIg0xxVUi1CgbbEatQSr62UBJnmqJJqkStQoMYNajVqiddWSoJMc1RJtQgF2hKrUUu8tlISZJqjSqpFKNCWWI1a4rWVkiDTHFVSLUKBtsRq1BKvrZQEmeaokmoRCrQlVqOWeG2lJMg0R5VUi1CgLbEatcRrKyVBpjmqpFqEAm2J1aglXlspCTLNUSXVIhRoS6xGLfHaSkmQaY4qqRahQFtiNWqJ11ZKgkxzVEm1CAXaEqtRS7y2UhJkmqNKqkUo0JZYjVritZWSINMcVVItQoG2xGrUEq+tlASZ5qiSahEKtCVWo5Z4baUkyDRHlVSLUKAtsRq1xGsrJUGmOaqkWoQCbYnVqCVeWykJMs1RJdUiFGhLrEYt8dpKSZBpjiqpFrkKBerboFajlnhtpSTINEeVVItQoC2xGrXEayslQaY5qqRahAJtidWoJV5bKQkyzVEl1SIUaEusRi3x2kpJkGmOKqkWoUBbYjVqiddWSoJMc1RJtcgxC7TIrgI9thMAAEeg/WL1d6XE6691SZBpjiqpFqFAW2I1aonXVkqCTHNUSbUIBdoSq1FLvLZSEmSao0qqRSjQlliNWuK1lZIg0xxVUi1CgbbEatQSr62UBJnmqJJqEQq0JVajlnhtpSTINEeVVItQoC2xGrXEayslQaY5qqRahAJtidWoJV5bKQkyzVEl1SIUaEusRi3x2kpJkGmOKqkWoUBbYjVqiddWSoJMc1RJtciVKFDbBrUatcRrKyVBpjmqpFqEAm2J1aglXlspCTLNUSXVIhRoS6xGLfHaSkmQaY4qqRahQFtiNWqJ11ZKgkxzVEm1CAXaEqtRS7y2UhJkmqNKqkUo0JZYjVritZWSINMcVVItQoG2xGrUEq+tlASZ5qiSahEKtCVWo5Z4baUkyDRHlVSLUKAtsRq1xGsrJUGmOaqkWoQCbYnVqCVeWykJMs1RJdUiFGhLrEYt8dpKSZBpjiqpFqFAW2I1aonXVkqCTHNUSbUIBdoSq1FLvLZSEmSao0qqRSjQlliNWuK1lZIg0xxVUi1CgbbEatQSr62UBJnmqJJqEQq0JVajlnhtpSTINEeVVItQoC2xGrXEayslQaY5qqRa5GoUqGuDWo1a4rWVkiDTHFVSLUKBtsRq1BKvrZQEmeaokmoRCrQlVqOWeG2lJMg0R5VUi1CgLbEatcRrKyVBpjmqpFqEAm2J1aglXlspCTLNUSXVIhRoS6xGLfHaSkmQaY4qqRahQFtiNWqJ11ZKgkxzVEm1CAXaEqtRS7y2UhJkmqNKqkUo0JZYjVritZWSINMcVVItQoG2xGrUEq+tlASZ5qiSahEKtCVWo5Z4baUkyDRHlVSLUKAtsRq1xGsrJUGmOaqkWoQCbYnVqCVeWykJMs1RJdUiFGhLrEYt8dpKSZBpjiqpFqFAW2I1aonXVkqCTHNUSbUIBdoSq1FLvLZSEmSao0qqRSjQlliNWuK1lZIg0xxVUi1CgbbEatQSr62UBJnmqJJqEQq0JVajlnhtpSTINEeVVItQoC2xGrXEayslQaY5qqRahAJtidWoJV5bKQkyzVEl1SIUaEusRi3x2kpJkGmOKqkWuSIFatqgVqOWeG2lJMg0R5VUi1CgLbEatcRrKyVBpjmqpFqEAm2J1aglXlspCTLNUSXVIhRoS6xGLfHaSkmQaY4qqRahQFtiNWqJ11ZKgkxzVEm1CAXaEqtRS7y2UhJkmqNKqkUo0JZYjVritZWSINMcVVItQoG2xGrUEq+tlASZ5qiSahEKtCVWo5Z4baUkyDRHlVSLUKAtsRq1xGsrJUGmOaqkWoQCbYnVqCVeWykJMs1RJdUiFGhLrEYt8dpKSZBpjiqpFqFAW2I1aonXVkqCTHNUSbUIBdoSq1FLvLZSEmSao0qqRSjQlliNWuK1lZIg0xxVUi1CgbbEatQSr62UBJnmqJJqEQq0JVajlnhtpSTINEeVVItQoC2xGrXEayslQaY5qqRahAJtidWoJV5bKQkyzVEl1SIUaEusRi3x2kpJkGmOKqkWoUBbYjVqiddWSoJMc1RJtQgF2hKrUUu8tlISZJqjSqpF+ijQpx/cGg7f+XDj1Ce3X5//z3DC135DgdritZWSINMcVVIt0kOBzgpysx/vDmcF+ujWAQrUs0GtRi3x2kpJkGmOKqkW6aFA7w5f+/Ds8Z3ha5+snPj07nBeoA/n/7NJ0ZgCbYDXVkqCTHNUSbXI/gX66Nbk0PLJ7Vd+vDzxD98fLgr07vB7FKg7XlspCTLNUSXVIvsX6P1ZUd5f6cn7w+F3/2V2+tM7q81KgXritZWSINMcVVItsn+B3h2+O/lz9Z76/Vf/ZvH1k9uv/cPoePQvN59kokCd8NpKSZBpjiqpFtm7QBcHmI9urT0IuijQ+XNIs54d8eUZl76sKecVaPHXAQD0Q4MCfTi6O//J2b99MFzck6dAAeAqsleBrr9O6eHisdHpn9vPJRWPmbkL3wCv+0WSINMcVVIt0meB7j4CXX69fj4F6oTXVkqCTHNUSbXI4Qp08wiVAnXCayslQaY5qqRaZO8C3fks/O4C5QjUF6+tlASZ5qiSapH9C3T++s/7G49xzgr06Z1zCpYCdcJrKyVBpjmqpFpk/wLd+U6klcK8u1GkFKgjXlspCTLNUSXVIvsX6KgZX91+L/za60C/+8nZ4+9vPYdEgRrhtZWSINMcVVItsn+Bnj1e+TSmR7cWx6GLu+z3Zx/GtPVWpKIxBdoAr62UBF4SKbUAACAASURBVJnmqJJqkR4K9OzxB6N+fGdyfLmrQM8e/9Vw+Mp3N48/KVAnvLZSEmSao0qqRfoo0CpFYwq0AV5bKQkyzVEl1SIUaEusRi3x2kpJkGmOKqkWoUBbYjVqiddWSoJMc1RJtciVKVDLBrUatcRrKyVBpjmqpFqEAm2J1aglXlspCTLNUSXVIhRoS6xGLfHaSkmQaY4qqRahQFtiNWqJ11ZKgkxzVEm1CAXaEqtRS7y2UhJkmqNKqkUo0JZYjVritZWSINMcVVItQoG2xGrUEq+tlASZ5qiSahEKtCVWo5Z4baUkyDRHlVSLUKAtsRq1xGsrJUGmOaqkWoQCbYnVqCVeWykJMs1RJdUiFGhLrEYt8dpKSZBpjiqpFqFAW2I1aonXVkqCTHNUSbUIBdoSq1FLvLZSEmSao0qqRSjQlliNWuK1lZIg0xxVUi1CgbbEatQSr62UBJnmqJJqEQq0JVajlnhtpSTINEeVVItQoC2xGrXEayslQaY5qqRahAJtidWoJV5bKQkyzVEl1SIUaEusRi3x2kpJkGmOKqkWuToF6tigVqOWeG2lJMg0R5VUi1CgLbEatcRrKyVBpjmqpFqEAm2J1aglXlspCTLNUSXVIhRoS6xGLfHaSkmQaY4qqRahQFtiNWqJ11ZKgkxzVEm1CAXaEqtRS7y2UhJkmqNKqkUo0JZYjVritZWSINMcVVItQoG2xGrUEq+tlASZ5qiSahEKtCVWo5Z4baUkyDRHlVSLUKAtsRq1xGsrJUGmOaqkWoQCbYnVqCVeWykJMs1RJdUiFGhLrEYt8dpKSZBpjiqpFqFAW2I1aonXVkqCTHNUSbUIBdoSq1FLvLZSEmSao0qqRSjQlliNWuK1lZIg0xxVUi1CgbbEatQSr62UBJnmqJJqkStUoIYNajVqiddWSoJMc1RJtQgF2hKrUUu8tlISZJqjSqpFKNCWWI1a4rWVkiDTHFVSLUKBtsRq1BKvrZQEmeaokmoRCrQlVqOWeG2lJMg0R5VUi1CgLbEatcRrKyVBpjmqpFqEAm2J1aglXlspCTLNUSXVIhRoS6xGLfHaSkmQaY4qqRbpVKCf//lLv6dAC1iNWuK1lZIg0xxVUi3SrUDfGAy++NbHFOhlsRq1xGsrJUGmOaqkWqRTgZ7+ZDDm2ff77dCiMQXaAK+tlASZ5qiSapFOBTrid9+YdOgL71Ogl8Bq1BKvrZQEmeaokmqRrgU64qNph774Swq0K1ajlnhtpSTINEeVVItcokBHd+U/+vq4Qm+81c9TSkVjCrQBXlspCTLNUSXVIpcq0BF//MHNyV35Pg5Di8YUaAO8tlISZJqjSqpFLlWgpz/9ymDOSxToxViNWuK1lZIg0xxVUi3SvUDn7Tl+Lv6PPxkMXrYrUL8GtRq1xGsrJUGmOaqkWqRjgc4e/Vy+GvTB4Et7v6apaEyBNsBrKyVBpjmqpFqkU4GevjfYfPLo8zee+RUFehFWo5Z4baUkyDRHlVSLdCrQ8TuRbqy/fOnzNzgCvRirUUu8tlISZJqjSqpFOhboi7/YOOn05/u/lKloTIE2wGsrJUGmOaqkWqRTgTaiaEyBNsBrKyVBpjmqpFqkU4Ge/vBby/vrn37zT3t6S3zRmAJtgNdWSoJMc1RJtUinAl17xqiPp48oUDe8tlISZJqjSqpFLl+gn96kQLtiNWqJ11ZKgkxzVEm1yEUFOn4CfpP9n3+nQN3w2kpJkGmOKqkWuahAzx5sF+jb/fQnBWqE11ZKgkxzVEm1yIUFevq/33zzmzdvfPXNOd/efEUTBXouVqOWeG2lJMg0R5VUi1xYoGP6e96obYHaNajVqCVeWykJMs1RJdUinQp07WVMFGh3rEYt8dpKSZBpjiqpFulUoF7IAj22HABcXzYL6PSHb44OPkf/XaWvw9Fi5XME2gCvv9YlQaY5qqRa5IIC/fyNwTO/2nwtk+3rQCnQMl5bKQkyzVEl1SIUaEusRi3x2kpJkGmOKqkWuaBAm1I0pkAb4LWVkiDTHFVSLUKBtsRq1BKvrZQEmeaokmoRCrQlVqOWeG2lJMg0R5VUi1yuQE//389+ToF2x2rUEq+tlASZ5qiSapGuBfrZ//j47Ozz8b8s9+yPKNCuWI1a4rWVkiDTHFVSLdKxQO9Nnno/6fVJeArUCK+tlASZ5qiSapFuBfpgUpuf3hx86ePP3ujhX4SnQN3w2kpJkGmOKqkW6VagJ5PPAH0wuPGjfv5F+FYF6tagVqOWeG2lJMg0R5VUi3Qq0NP3xs05q1Hjf9KDAi3jtZWSINMcVVIt0qlAp535+RuD584o0MtgNWqJ11ZKgkxzVEm1yCUK9NObk8+ip0C7YzVqiddWSoJMc1RJtUinAp3ehb83eQiUx0AvgdWoJV5bKQkyzVEl1SKdCvTsZPDc+On3cXNaPwtPgVbx2kpJkGmOKqkW6VagD+b/mtzpDwbT41AKtAtWo5Z4baUkyDRHlVSLdCvQ0d33Ec9Nnki60dc/ytmiQM0a1GrUEq+tlASZ5qiSapGOBXr22Q+/9f7oj8///MVf9tWfFKgRXlspCTLNUSXVIl0LtAVFYwq0AV5bKQkyzVEl1SIUaEusRi3x2kpJkGmOKqkWuUSB/tOc31OgHbEatcRrKyVBpjmqpFqkY4F+9oOIfxOJAq3itZWSINMcVVIt0q1A1/9VOQq0K1ajlnhtpSTINEeVVIt0K9B7g8Gz3/7ZnJ/7vhPJrEGtRi3x2kpJkGmOKqkW6VSgp+9NPkakb4rGFGgDvLZSEmSao0qqRToV6Odv9PbuIwrUE6+tlASZ5qiSapGOBdrbP+NBgXritZWSINMcVVIt0qlAZx+oTIFeFqtRS7y2UhJkmqNKqkU6FejZvd4+gYkC9cRrKyVBpjmqpFqkW4GODkG/Q4FeHqtRS7y2UhJkmqNKqkU6FejpD785GNz46pszvuX8MiarBrUatcRrKyVBpjmqpFqkU4Guv47e+oX0FGgNr62UBJnmqJJqEQq0JVajlnhtpSTINEeVVIt0KtBGFI0p0AZ4baUkyDRHlVSLUKAtsRq1xGsrJUGmOaqkWuQyBXra1+fYUaB2eG2lJMg0R5VUi3Qu0I++MX7w8/M/f6unp+ApUCu8tlISZJqjSqpFOhbo6U+mzx59/sbg2d7e1Vk0pkAb4LWVkiDTHFVSLdKxQE8Gg2f/081nfnX63waTfx3euECdGtRq1BKvrZQEmeaokmqRbgX6YDD4zuwjRX57c9DXv2tcNKZAG+C1lZIg0xxVUi3SrUBPxu+Fn30m073ePhu0aEyBNsBrKyVBpjmqpFqkU4FOP41pVqCf3vR+IT0FWsFrKyVBpjmqpFqkU4FOq3NWoP19OGjRmAJtgNdWSoJMc1RJtQgF2hKrUUu8tlISZJqjSqpFOhXo6XvjJ45mzfmgt6fhi8YUaAO8tlISZJqjSqpFOhXo9ImjaYH2+A/MFY0p0AZ4baUkyDRHlVSLdCvQT28OXvp4UqCffX3Q2z/vUTSmQBvgtZWSINMcVVIt0q1Ax/8w/OD5mze++pXRn7396x5F44sK1KhBrUYt8dpKSZBpjiqpFulYoGf/eHP+aaD9/etIRWMKtAFeWykJMs1RJdUiXQv07I8/fX7Unl988Ze99ScFaoTXVkqCTHNUSbVI5wJtQNGYAm2A11ZKgkxzVEm1CAXaEqtRS7y2UhJkmqNKqkU6Fujp7372s5/9U38fBUqBmuG1lZIg0xxVUi3SpUA/+8H8GaQbb/X5ofRFYwq0AV5bKQkyzVEl1SIXF+j0s5QX/Jn7J9JToBW8tlISZJqjSqpFLizQ0/fGtfnFN0d8c3Ig2tvnKTcrUJ8GtRq1xGsrJUGmOaqkWuTCAj0ZdeaL8zvun/1g9FVf7+SkQI3w2kpJkGmOKqkWuahAP725/tL5ewP7t3JSoAW8tlISZJqjSqpFLirQk80jzpP+3otUNKZAG+C1lZIg0xxVUi1yQYGOHwFd/yeQHvT3KGjRmAJtgNdWSoJMc1RJtcgFBfr5G5v32Ef36SnQrliNWuK1lZIg0xxVUi1ycYFufP789ikU6LlYjVritZWSINMcVVItQoG2xGrUEq+tlASZ5qiSahEKtCVWo5Z4baUkyDRHlVSLXMkCtWlQq1FLvLZSEmSao0qqRSjQlliNWuK1lZIg0xxVUi1CgbbEatQSr62UBJnmqJJqkYsLdBsKtCtWo5Z4baUkyDRHlVSLUKAtsRq1xGsrJUGmOaqkWuSCAj394ZvbfMv9hfQU6KXx2kpJkGmOKqkWuaBAO/H0g1vD4Tsfbpz65Pbr8nwK1AmvrZQEmeaokmqRHgr0ye3hmK/9Zv3ku8PX5fkUqBNeWykJMs1RJdUiPRTo3eFrH549vjN87ZOVE5/eHc4LdOf5bQvUpUGtRi3x2kpJkGmOKqkW2b9AH92aHFs+uf3Kj5cn/uH7w3mB7jyfAjXDayslQaY5qqRaZP8CvT8ryvvD762cNvzuvyxO3z6fAnXDayslQaY5qqRaZP8CvTt8d/Lnw/ld9nFZvvo3i693nU+BuuG1lZIg0xxVUi2yd4E+vTO7a/7o1vqDnLPC3HH+l2dc+rKmdCvQ4i8HAKhCgQIAFNmrQNdfqLRdoJsvZCoeM3MXvgFe94skQaY5qqRapM8C7XoESoH64bWVkiDTHFVSLXJFC9SkQa1GLfHaSkmQaY4qqRbZu0DPfZb9qM/CU6CXxGsrJUGmOaqkWmT/Ap2/vnPzdZ4PN17/edDXgVKgl8RrKyVBpjmqpFpk/wI9751GD4/5TiQK9JJ4baUkyDRHlVSL7F+gT+8MX931Xvd5gZ53PgXqhNdWSoJMc1RJtcj+BXr2eOXTlh7dWhxnLh7zfHz4T2OiQC+L11ZKgkxzVEm1SA8Fevb4g1E/vjM5vtxVoKvnU6CmeG2lJMg0R5VUi/RRoFWKxhRoA7y2UhJkmqNKqkWuaoF6NKjVqCVeWykJMs1RJdUiFGhLrEYt8dpKSZBpjiqpFqFAW2I1aonXVkqCTHNUSbUIBdoSq1FLvLZSEmSao0qqRSjQlliNWuK1lZIg0xxVUi1CgbbEatQSr62UBJnmqJJqEQq0JVajlnhtpSTINEeVVItQoC2xGrXEayslQaY5qqRa5MoWqEWDWo1a4rWVkiDTHFVSLUKBtsRq1BKvrZQEmeaokmoRCrQlVqOWeG2lJMg0R5VUi1CgLbEatcRrKyVBpjmqpFqEAm2J1aglXlspCTLNUSXVIhRoS6xGLfHaSkmQaY4qqRahQFtiNWqJ11ZKgkxzVEm1yNUtUIcGtRq1xGsrJUGmOaqkWoQCbYnVqCVeWykJMs1RJdUiFGhLrEYt8dpKSZBpjiqpFqFAW2I1aonXVkqCTHNUSbUIBdoSq1FLvLZSEmSao0qqRSjQlliNWuK1lZIg0xxVUi1CgbbEatQSr62UBJnmqJJqkStdoEdvUKtRS7y2UhJkmqNKqkWucIEaHIJajVritZWSINMcVVItQoG2xGrUEq+tlASZ5qiSahEKtCVWo5Z4baUkyDRHlVSLXO0CPXaDWo1a4rWVkiDTHFVSLXKVC/T4h6BWo5Z4baUkyDRHlVSLUKAtsRq1xGsrJUGmOaqkWoQCbYnVqCVeWykJMs1RJdUiV7xAj9ygVqOWeG2lJMg0R5VUi1zpAj36IajVqCVeWykJMs1RJdUiFGhLrEYt8dpKSZBpjiqpFqFAW2I1aonXVkqCTHNUSbUIBdoSq1FLvLZSEmSao0qqRa52gR67Qa1GLfHaSkmQaY4qqRahQFtiNWqJ11ZKgkxzVEm1CAXaEqtRS7y2UhJkmqNKqkUo0JZYjVritZWSINMcVVItQoG2xGrUEq+tlASZ5qiSapErXqBHblCrUUu8tlISZJqjSqpFKNCWWI1a4rWVkiDTHFVSLUKBtsRq1BKvrZQEmeaokmoRCrQlVqOWeG2lJMg0R5VUi1CgLbEatcRrKyVBpjmqpFrk6hfoMRvUatQSr62UBJnmqJJqkateoMc9BLUatcRrKyVBpjmqpFqEAm2J1aglXlspCTLNUSXVIhRoS6xGLfHaSkmQaY4qqRahQFtiNWqJ11ZKgkxzVEm1yDUo0CM2qNWoJV5bKQkyzVEl1SJXvkCPeghqNWqJ11ZKgkxzVEm1CAXaEqtRS7y2UhJkmqNKqkUo0JZYjVritZWSINMcVVItch0K9HgNajVqiddWSoJMc1RJtcjVL9BjHoJajVritZWSINMcVVItQoG2xGrUEq+tlASZ5qiSahEKtCVWo5Z4baUkyDRHlVSLUKAtsRq1xGsrJUGmOaqkWuRaFOjRGtRq1BKvrZQEmeaokmqRa1CgRzwEtRq1xGsrJUGmOaqkWoQCbYnVqCVeWykJMs1RJdUiFGhLrEYt8dpKSZBpjiqpFrkeBXqsBrUatcRrKyVBpjmqpFrkOhTo8Q5BrUYt8dpKSZBpjiqpFqFAW2I1aonXVkqCTHNUSbUIBdoSq1FLvLZSEmSao0qqRa5JgR6pQa1GLfHaSkmQaY4qqRY5ZoEWuXyBjhr02NIAcPW5mkegR7sPb/V3pcTrr3VJkGmOKqkWoUBbYjVqiddWSoJMc1RJtQgF2hKrUUu8tlISZJqjSqpFrkeBHqtBrUYt8dpKSZBpjiqpFqFAW2I1aonXVkqCTHNUSbUIBdoSq1FLvLZSEmSao0qqRSjQlliNWuK1lZIg0xxVUi1CgbbEatQSr62UBJnmqJJqkWtSoEdqUKtRS7y2UhJkmqNKqkUo0JZYjVritZWSINMcVVItQoG2xGrUEq+tlASZ5qiSahEKtCVWo5Z4baUkyDRHlVSLXJ8CPUaDWo1a4rWVkiDTHFVSLXJdCvQ4h6BWo5Z4baUkyDRHlVSLUKAtsRq1xGsrJUGmOaqkWuQaFegRGtRq1BKvrZQEmeaokmqRa1OgRzkEtRq1xGsrJUGmOaqkWoQCbYnVqCVeWykJMs1RJdUiFGhLrEYt8dpKSZBpjiqpFrlOBXr4BrUatcRrKyVBpjmqpFrk+hToMQ5BrUYt8dpKSZBpjiqpFqFAW2I1aonXVkqCTHNUSbXItSrQgzeo1aglXlspCTLNUSXVIteoQI9wCGo1aonXVkqCTHNUSbUIBdoSq1FLvLZSEmSao0qqRSjQlliNWuK1lZIg0xxVUi1CgbbEatQSr62UBJnmqJJqketVoIduUKtRS7y2UhJkmqNKqkWuU4Ee/hDUatQSr62UBJnmqJJqEQq0JVajlnhtpSTINEeVVItQoC2xGrXEayslQaY5qqRa5JoV6IEb1GrUEq+tlASZ5qiSapFrVaAHPwS1GrXEayslQaY5qqRahAJtidWoJV5bKQkyzVEl1SIUaEusRi3x2kpJkGmOKqkWoUBbYjVqiddWSoJMc1RJtch1K9DDNqjVqCVeWykJMs1RJdUi16tAD30IajVqiddWSoJMc1RJtQgF2hKrUUu8tlISZJqjSqpFKNCWWI1a4rWVkiDTHFVSLXLtCvSgDWo1aonXVkqCTHNUSbXINSvQAx+CWo1a4rWVkiDTHFVSLUKBtsRq1BKvrZQEmeaokmqR61egh2xQq1FLvLZSEmSao0qqRa5bgR72ENRq1BKvrZQEmeaokmoRCrQlVqOWeG2lJMg0R5VUi1zDAj1gg1qNWuK1lZIg0xxVUi1y7Qr0oIegVqOWeG2lJMg0R5VUi1CgLbEatcRrKyVBpjmqpFrkOhbo4RrUatQSr62UBJnmqJJqketXoIc8BLUatcRrKyVBpjmqpFqEAm2J1aglXlspCTLNUSXVIteyQA/WoFajlnhtpSTINEeVVItcwwI94CGo1aglXlspCTLNUSXVIhRoS6xGLfHaSkmQaY4qqRa5ngV6qAa1GrXEayslQaY5qqRa5DoW6OEOQa1GLfHaSkmQaY4qqRahQFtiNWqJ11ZKgkxzVEm1yLUs0IM1qNWoJV5bKQkyzVEl1SLXs0C/QIFu4LWVkiDTHFVSLXJdC/QwDWo1aonXVkqCTHNUSbXINS3QAzWo1aglXlspCTLNUSXVIte1QA/ToFajlnhtpSTINEeVVItQoC2xGrXEayslQaY5qqRahAJtidWoJV5bKQkyzVEl1SLXuEAP0KBWo5Z4baUkyDRHlVSLXNsCPcghqNWoJV5bKQkyzVEl1SLXuUDbN6jVqCVeWykJMs1RJdUi17dAD3EIajVqiddWSoJMc1RJtQgF2hKrUUu8tlISZJqjSqpF+ijQpx/cGg7f+fC8k57cHk742m/cCrR5g1qNWuK1lZIg0xxVUi3SQ4HOCnK1H9dOenTLs0APcAhqNWqJ11ZKgkxzVEm1SA8Fenf42odnj+8MX/tk90kPh6/v/sGiMQXaAK+tlASZ5qiSapH9C/TRrcmh5ZPbr/x490l3h9/zLND2DWo1aonXVkqCTHNUSbXI/gV6f3aAeX/Zk2snPb2zbFazAm3+qXZWo5Z4baUkyDRHlVSL7F+gd4fvTv5cuae+dtKT26/9w/eHw7/8cOsni8Z9FmjjBrUatcRrKyVBpjmqpFpk7wJdHGA+ujV/EHT9pPlzSLNSHfHlGZe+rCk9FugXDvqyLQC42jQo0IfD4Xc/Ofu3D4aLe/JOBUqDAkBf7FWg89cprZ80f0B0+7mk4jFznwXa+E681Z0Nidf9IkmQaY4qqRbps0B3H4HOebj6OiebAm3boFajlnhtpSTINEeVVIscrkCXR6hmBdqwQa1GLfHaSkmQaY4qqRbZu0AvfBZ+WaCWR6BNG9Rq1BKvrZQEmeaokmqR/Qt0/vrPtdeBLk96emdXmxoV6LhBW1Wo1aglXlspCTLNUSXVIvsX6EXvRLo7Lc5FkdoVaMMGtRq1xGsrJUGmOaqkWmT/Ah0146sb74VfO+nRrfHLmB5/f+s5JJsCbXc33mrUEq+tlASZ5qiSapH9C/Ts8cpHLz26NTkOXT1pdEd++sXWW5GKxg0KtNVz8VajlnhtpSTINEeVVIv0UKBnjz8Y9eM7k+PLWYGunjT64q+Gw1e+u3n8aVWgjRrUatQSr62UBJnmqJJqkT4KtErRuEmBtvlcEatRS7y2UhJkmqNKqkUo0HmBtmhQq1FLvLZSEmSao0qqRSjQlg1qNWqJ11ZKgkxzVEm1CAVKgY7x2kpJkGmOKqkWoUAp0DFeWykJMs1RJdUiFOiyQPtvUKtRS7y2UhJkmqNKqkUo0JUG7Tfaf2UrmxBkmqNKqkUo0JUC7b1BrUYt8dpKSZBpjiqpFqFAVxu032zZyiYEmeaokmoRCpQCHeO1lZIg0xxVUi1Cga4WaN8NajVqiddWSoJMc1RJtQgFutag/YbLVrYgyDRHlVSLUKAU6BivrZQEmeaokmoRCrRlg1qNWuK1lZIg0xxVUi1Cga43aM/p9vvrGuK1lZIg0xxVUi1Cga4XaL8NajVqiddWSoJMc1RJtQgF2rJBrUYt8dpKSZBpjiqpFqFAWzao1aglXlspCTLNUSXVIhQoBTrGayslQaY5qqRahAKlQMd4baUkyDRHlVSLUKBbBdpjg1qNWuK1lZIg0xxVUi1CgW43aI/p9verGuO1lZIg0xxVUi1CgVKgY7y2UhJkmqNKqkUo0JYNajVqiddWSoJMc1RJtQgF2rJBrUYt8dpKSZBpjiqpFqFAdzVob+n29Yua47WVkiDTHFVSLUKB7irQvhrUatQSr62UBJnmqJJqEQq0ZYNajVritZWSINMcVVItQoHubtCe0u3n1xwAr62UBJnmqJJqEQp0d4H206BWo5Z4baUkyDRHlVSLUKAtG9Rq1BKvrZQEmeaokmoRCvS8Bu0l3T5+yUHw2kpJkGmOKqkWoUDPK9A+GtRq1BKvrZQEmeaokmoRCrRlg1qNWuK1lZIg0xxVUi1CgZ7foD2ku/+vOBBeWykJMs1RJdUiFOj5Bbp/g1qNWuK1lZIg0xxVUi1CgbZsUKtRS7y2UhJkmqNKqkUo0JYNajVqiddWSoJMc1RJtQgFKht033T3/PnD4bWVkiDTHFVSLUKBygLds0GtRi3x2kpJkGmOKqkWoUB1g+6Z7n4/fkC8tlISZJqjSqpFKFBdoPs1qNWoJV5bKQkyzVEl1SIU6AUNul+6e/30IfHaSkmQaY4qqRahQC8o0L0a1GrUEq+tlASZ5qiSahEKtGWDWo1a4rWVkiDTHFVSLUKBXtig+6S7x88eFq+tlASZ5qiSahEK9MIC3aNBrUYt8dpKSZBpjiqpFqFAWzao1aglXlspCTLNUSXVIhRoywa1GrXEayslQaY5qqRahALtUqDVBrUatcRrKyVBpjmqpFqEAu3WoLUKtRq1xGsrJUGmOaqkWoQC7dqglQ61GrXEayslQaY5qqRahAK9RIVe3rV2FY+A11ZKgkxzVEm1CAV6mQ69tGvtKh4Br62UBJnmqJJqEQr0Mg16adfaVTwCXlspCTLNUSXVIhRoywa1GrXEayslQaY5qqRahAJt2aBWo5Z4baUkyDRHlVSLUKAtG9Rq1BKvrZQEmeaokmoRCvSSBXqpBrUatcRrKyVBpjmqpFqEAm3ZoFajlnhtpSTINEeVVItQoC0b1GrUEq+tlASZ5qiSahEKtGWDWo1a4rWVkiDTHFVSLUKBtmxQq1FLvLZSEmSao0qqRSjQUoN27FCrUUu8tlISZJqjSqpFKNBqg3apUKtRS7y2UhJkmqNKqkUo0BrdGtRq1BKvrZQEmeaokmoRCrRKlwa1GrXEayslQaY5qqRahAIt06FBrUYt8dpKSZBpjiqpFqFA61zcoFajlnhtpSTINEeVVIscs0CLHLs3lwwS4gKAQ8ER6KW46BDU6u9Kiddf65Ig0xxVUi1Cge7FBQ1qNWqJ11ZKgkxzVEm1CAW6HxTowQkyzVEl1SIU6H7oQ1CrUUu8tlISZJqjSqpFKNA9kQ1qNWqJ11ZKgkxzVEm1IWGolAAADrxJREFUCAW6L6JBB1ajlnhtpSTINEeVVItQoPty3ps6O79h3gKvrZQEmeaokmoRCnRvdvbkYMGeAzoQXlspCTLNUSXVIhRoD2zX5Lg5d59jitdWSoJMc1RJtQgF2gebR5qz+pye1ceYmuO1lZIg0xxVUi1CgfbCYJPVs/qdWBu8tlISZJqjSqpFKNCeOK8/L3qtvQleWykJMs1RJdUiFGhzIg5BvbZSEmSao0qqRSjQ9iQ0qNdWSoJMc1RJtQgFegAo0D4JMs1RJdUiFOgBCDgE9dpKSZBpjiqpFqFADwEF2iNBpjmqpFqEAj0E/oegXlspCTLNUSXVIhToQbBvUK+tlASZ5qiSahEK9CDYvyneayslQaY5qqRahAI9DO4N6rWVkiDTHFVSLUKBHgrvBvXaSkmQaY4qqRahQA+GdYN6baUkyDRHlVSLUKCHw7lBvbZSEmSao0qqRSjQA2L8QKjXVkqCTHNUSbUIBXpIfBvUayslQaY5qqRahAI9LK4N6rWVkiDTHFVSLUKBHpjlv5Rk9S8meW2lJMg0R5VUi1Cgh2bzs+v7nWcVr62UBJnmqJJqEQr0KMw/tt6mQ722UhJkmqNKqkUo0CNjUqFeWykJMs1RJdUiFOjxcahQr62UBJnmqJJqEQrUgeM3qNdWSoJMc1RJtQgF6sGxG9RrKyVBpjmqpFqEAjXhyM/Je22lJMg0R5VUi1CgLhz3ZU1eWykJMs1RJdUiFKgVR6tQr62UBJnmqJJqEQrUjCNVqNdWSoJMc1RJtQgFasdRKtRrKyVBpjmqpFqEAjVEVWijavXaSkmQaY4qqRahQC3ZfMN88zfQe22lJMg0R5VUi1Cgphy4Qb22UhJkmqNKqkUo0ET6b1CvrZQEmeaokmoRCjSS3g9CvbZSEmSao0qqRSjQTPq+H++1lZIg0xxVUi1CgabSb4V6baUkyDRHlVSLUKC59PmEktdWSoJMc1RJtQgFmkx/z8of+9OgLoHV7UfidVPX5Kh6pUqBxtNDhR73g0wuidXtR+J1U9fkqHqlSoFeCfY6FJ38nMu/LXIxVrcfiddNXZOj6pUqBXpFKL/Sflqfy99Rm8oBsbr9SLxu6pocVa9UKdCrxWXftbRSn4sfr83lYFjdfiReN3VNjqpXqhTo1aRTjw426nP9By+Yw/nfUT4Y7obV7UfidVPX5Kh6pUqBXnl2N9n8NPX9fdLHss4WoL9f1Rivm7omR9UrVQr0urCr1S77/es/fP456hftv7J7/4ZD4XVT1+SoeqVKgV4fupdn68veq0atbj8Sr5u6JkfVK1UKFA7K/k1qdfuReN3UNTmqXqlSoHAExCMDevr9PApwILxu6pocVa9UKVA4Jp17tMfHAA6G101dk6PqlSoFClaIY9P5Q7cxFep1U9fkqHqlSoGCIzubc+v8fm8LveN1U9fkqHqlSoFCJgEV6nVT1+SoeqVKgUIs7g+Iet3UNTmqXqlSoBBM5+egjoLXTV2To+qVKgUK8bjWqNdNXZOj6pUqBQpXEI8u9bqpa3JUvVKlQOHKcuwjU6+buiZH1StVChSuA0fpUq+buiZH1StVChSuHee2ac996nVT1+SoeqVKgcJ1RnTp/n3qdVPX5Kh6pUqBAiy4oE8vWaleN3VNjqpXqn0U6NMPbg2H73x47kk7zqdAIYA9+9Trpq7JUfVKtYcCfXJ7OOZrvznnpB3nU6CQyaX61OumrslR9Uq1hwK9O3ztw7PHd4avfbL7pB3nU6BwJbj4EPXyd/yPg1UrSa5agT66NTm2fHL7lR/vPGnH+RQoXEm69qlhsVq1kuSqFej94euzP7+386Qd51OgcK24dLEevl6tWkly1Qr07vDdyZ8PZ0W5edKO8ylQgC+0+hek+2d8u7vs92/R+RsvrKxacbRh7wJ9emd21/zRrfmDnGsn7Tj/yzMufVlTjr31AAehn/KDThTLaJOEAgWAQ3LZiuncUQerx4vpK6pL/8RKQc5fqLR20o7z51SPmfs9Bm9JjmpQqkGmOaqkWqTPAu16BEqB+hGUapBpjiqpFqFAW5KjGpRqkGmOKqkW2btAD/8svFV+mhzVoFSDTHNUSbXI/gU6f33n2utAV07acT4FakdQqkGmOaqkWmT/Aj34O5Gs8tPkqAalGmSao0qqRfYv0Kd3hq9uvNd97aQd51OgdgSlGmSao0qqRfYv0LPHK5+29OjW5Dhz9aT1LyhQT4JSDTLNUSXVIj0U6NnjD0b9+M7k+HJWoKsnbXxBgVoSlGqQaY4qqRbpo0CrVI37TaAlOapBqQaZ5qiSahEKtCU5qkGpBpnmqJJqEQq0JTmqQakGmeaokmoRCrQlOapBqQaZ5qiSahEKtCU5qkGpBpnmqJJqEQq0JTmqQakGmeaokmoRCrQlOapBqQaZ5qiSahEKtCU5qkGpBpnmqJJqEQq0JTmqQakGmeaokmoRCrQlOapBqQaZ5qiSahEKtCU5qkGpBpnmqJJqEQq0JTmqQakGmeaokmoRCrQlOapBqQaZ5qiSahEKtCU5qkGpBpnmqJJqEQq0JTmqQakGmeaokmoRCrQlOapBqQaZ5qiSahEKtCU5qkGpBpnmqJJqEQq0JTmqQakGmeaokmoRCrQlOapBqQaZ5qiSahEKtCU5qkGpBpnmqJJqEQq0JTmqQakGmeaokmoRCrQlOapBqQaZ5qiSahEKtCU5qkGpBpnmqJJqEQq0JTmqQakGmeaokmoRCrQlOapBqQaZ5qiSahEKtCU5qkGpBpnmqJJqkWMWaI0vf/nYBlcRUm0AobbAOlUK9JpCqg0g1BZYp0qBXlNItQGE2gLrVCnQawqpNoBQW2CdKgV6TSHVBhBqC6xTpUCvKaTaAEJtgXWqFOg1hVQbQKgtsE6VAr2mkGoDCLUF1qkGFCgAgCcUKABAEQoUAKAIBQoAUIQCBQAoQoECABShQAEAilCgAABF3Av06Qe3hsN3Pjy2xpXhD381HL4yz5Nw++PRrdc+mfwPofbE01+PgvwPfz37wjVV8wJ9cns45mu/ObbIFeHXkziHr/x4/AXh9sfTO8NpgRJqTzyeBjn87vgL31TNC/Tu8LUPzx7PlxP25OHwldHf6KM8J5tIuP1xfziLkVD7YfQ30qsfnj39v9O/7H1T9S7QR7cmt/Qnt6eHTLAfo6V8d/zn6O/zdwm3Tx7dmhUoofbEw9nh5v3h69apehfoJL3Jn987ssmV4Mnt2X2gu+M8Cbc3Rn8z/dfpY6CE2g/zv+unGKfqXaB3Zyk+nAUI/TApUMLtjbvD12dPIhFqPyz+rp9gnKp1gT69MztkXzzFCX0wuStEuL3xcHT3fZoiofbEOL9/+S/D4at/c+adKgV6DZncIyLcvpj8fUSB9soovw+mz8J/zzvVlAI1fAFDLA8nz2wSbl9MHhDZKlBC3YeH4xcwfXL29NfD9TtLdqmmFKjd3zy5PLz1yvgRJcLtifuT5985Au2Vh8PZ80V3R/eWnFOlQK8b92cvoyfcfnh0a5IjBdors1SnQTqnal2gzs++pfLr4fy1dITbC/eHC0b3Lwm1HxZ31if/Y5yqd4HOX/dl+PqvTJ7eHb46fxSJcHthvUAJtR8WB53jVzg4p+pdoMbvQMjk7sqb4Qi3T2b3Lgm1J+7ODjZnz9DZpupdoNM3xFq+BzaS+6tBEm6fzAqUUHvi0a3xhy9Nn4V3TtW7QOcfyWL34oVMZp9pM2b81zvh9sj8+Q1C7YmHt6YfHDZ59NM3VfMCPXs8fjntO3Z/72TycLhWoITbI4sniAm1Jx6PPwL0Lz+cf2GaqnuBAgDYQoECABShQAEAilCgAABFKFAAgCIUKABAEQoUAKAIBQoAUIQCBQAoQoECABShQAEAilCgAABFKFAAgCIUKFjz6b974Vs/X355+tGbzz93iR///I3By707AcyhQMGaT28OBjd+tPjywWAw6Fagv/3Tj88oUGgMBQrWjAt0pQNPuhboyeBLFCg0hwIFa0YF+vy0C8d8/saNr1Cg4AMFCtaMCvTbNxf34R8M/uQ9ChR8oEDBmlGBfue9RQmejL+gQMEGChSsGRXo2/fm9+E/f+OZv18U6Gc/GD+/9OIvZ+cMXj796VcGgy++Nf7We4MJL2+ePv+xwQvvH+G6wNWDAgVrxgX66fw+/IPBc6fzAp115ODGX4y/GhXlv//69IRnf7VeoC++Mf1iWsK/nf3Y5NsA9oQCBWvGBXo6vw9/MjqcnBXoqCKf/cXZ2e9Grfn22aRAR1X68dln782es1/ehR/ceGt5+ujXfWl0zHr6t11fDQWgoEDBmnGBnt2bt+GNH80KdFSM0yPK0dfP/GpalG/Pvp6csVKgq6ffm3z35PxnOASFvaFAwZpJgc7uwz8YdeCsQO8tXl0/+oaXVwp13ozLAl07/d7qq/IB9oUCBWsmBTp7Ln10D/5sVqDLA8jRec/N/zvm3maBrp3+YPy80y8OfzXgikKBgjWTAp3W4el7o6PHaYHO76ifzf93+XKlrQJdP/0nk2eQvvjW749wXeDqQYGCNdMCfTC+5/3pzUmLzgp08RzQyaUK9Oyjb8yeheeFTLA/FChYMy3QSQ/eG3fhvkegY373w6+MK/TtA18VuIJQoGDNtEBHffjc5B68eAy0e4GeTV/HtHiHPUAVChSsmRXog8Ezfze+B3+2eBZ+fgD5YDB7Fr5Lga7c9ed1TNADFChYMyvQURE+P+m+818H2ukIdPEyppUHAQDKUKBgzaxAJx8EOv6fHe9EGjfkVoGOm/L091unj76+8Z1RcY7fmcRjoLA3FChYMy/QUWFOivH898KvF+j4o+tH37l1+uQDmmdvlAfYFwoUrJkX6OjPSXGebnwa00vTF3RuP1n029G5z328ffrpT58fvxD0JV4ICj1AgQIAFKFAAQCKUKAAAEUoUACAIhQoAEARChQAoAgFCgBQhAIFAChCgQIAFKFAAQCKUKAAAEUoUACAIhQoAEARChQAoAgFCgBQhAIFAChCgQIAFKFAAQCKUKAAAEUoUACAIv8fveNVQXKEsdUAAAAASUVORK5CYII=" width="672" /></p>
+<p>With the above summary statistics in mind we will go ahead and
+perform the following data cleaning processes.</p>
+<ul>
+<li><p>Remove Duplicates</p></li>
+<li><p>Handle Missing Values</p></li>
+<li><p>Handle Missing Values</p></li>
+<li><p>Converting Data Types</p></li>
+<li><p>Select Relevant Data for Analysis</p></li>
+</ul>
+</div>
+</div>
+<div id="remove-duplicates" class="section level4">
+<h4>Remove Duplicates</h4>
+<p>Duplicates refer to rows or records with identical or nearly
+identical attribute values. Identifying and addressing duplicates is
+crucial for data quality and unbiased analysis results.</p>
+<pre class="r"><code># Check for duplicates 
+duplicates &lt;- mine_accidents[duplicated(mine_accidents) | duplicated(mine_accidents, fromLast = TRUE), ]
+print(duplicates[1:5])</code></pre>
+<pre><code>##        MINE_ID CONTROLLER_ID                            CONTROLLER_NAME
+## 6839   4101003        M00581                     Oglebay Norton Company
+## 8461    404075        M00004                       Heidelberg Cement AG
+## 12399   400158        M00004                       Heidelberg Cement AG
+## 15430  4608159        C06656     Horizon Natural Resources Incorporated
+## 16367   404075        M00004                       Heidelberg Cement AG
+## 20961  1200090        M00452                           Rogers Group Inc
+## 22242  3001712        M05813 Joseph Charles Tesiero; John A Tesiero III
+## 39133  4400093        M01784                             Dennis W Perry
+## 39443  4603317        C06656     Horizon Natural Resources Incorporated
+## 42426  3400050        M06183                                    CRH PLC
+## 57822  2100535       0119681                                 Holcim Ltd
+## 83135  4400093        M01784                             Dennis W Perry
+## 84446   400021        M06796                              Bill T  Dutra
+## 96568   400158        M00004                       Heidelberg Cement AG
+## 102506 3101919       0071891                   Vulcan Materials Company
+## 104384  100851       0121101   Virginia Conservation Legacy Fund (VCLF)
+## 106408 2900159       0067299                       Freeport-McMoRan Inc
+## 114669 3400050        M06183                                    CRH PLC
+## 119208 4101003        M00581                     Oglebay Norton Company
+## 127949 4608159        C06656     Horizon Natural Resources Incorporated
+## 138663 3001712        M05813 Joseph Charles Tesiero; John A Tesiero III
+## 142665 2900159       0067299                       Freeport-McMoRan Inc
+## 144091 4608645        C02508                      Massey Energy Company
+## 145430 1200090        M00452                           Rogers Group Inc
+## 156112 4608645        C02508                      Massey Energy Company
+## 159914 4603317        C06656     Horizon Natural Resources Incorporated
+## 160876  400021        M06796                              Bill T  Dutra
+## 186725 3101919       0071891                   Vulcan Materials Company
+## 192016 4608159        C06656     Horizon Natural Resources Incorporated
+## 203023 3600136        M00199                            Italcementi Spa
+## 204136 4608159        C06656     Horizon Natural Resources Incorporated
+## 208078 4603317        C06656     Horizon Natural Resources Incorporated
+## 213650 1200090        M00452                           Rogers Group Inc
+## 217861 1505484        M12849            Carmeuse Holding SA; Lafarge SA
+## 218971 3400050        M06183                                    CRH PLC
+## 220741  100851       0121101   Virginia Conservation Legacy Fund (VCLF)
+## 229905 1505484        M12849            Carmeuse Holding SA; Lafarge SA
+## 242692 2100535       0119681                                 Holcim Ltd
+## 243406 3600136        M00199                            Italcementi Spa
+##        OPERATOR_ID                      OPERATOR_NAME
+## 6839        L00707                    Texas Mining LP
+## 8461        L16900        Lehigh Southwest Cement Co.
+## 12399       L16900        Lehigh Southwest Cement Co.
+## 15430       P24326           Cannelton Industries Inc
+## 16367       L16900        Lehigh Southwest Cement Co.
+## 20961       L06514                   Rogers Group Inc
+## 22242       L13101             Cranesville Aggregates
+## 39133       L01984                 Stuart M Perry Inc
+## 39443       P24326           Cannelton Industries Inc
+## 42426       L09912                  APAC-Oklahoma Inc
+## 57822      0051706   Aggregate Industries - MWR, Inc.
+## 83135       L01984                 Stuart M Perry Inc
+## 84446       L14733                    Dutra Materials
+## 96568       L16900        Lehigh Southwest Cement Co.
+## 102506      L16168 Vulcan Construction Materials, LLC
+## 104384     0051343            Oak Grove Resources LLC
+## 106408      L16321        Freeport-McMoRan Tyrone Inc
+## 114669      L09912                  APAC-Oklahoma Inc
+## 119208      L00707                    Texas Mining LP
+## 127949      P24326           Cannelton Industries Inc
+## 138663      L13101             Cranesville Aggregates
+## 142665      L16321        Freeport-McMoRan Tyrone Inc
+## 144091      P24044                     Progress Coal 
+## 145430      L06514                   Rogers Group Inc
+## 156112      P24044                     Progress Coal 
+## 159914      P24326           Cannelton Industries Inc
+## 160876      L14733                    Dutra Materials
+## 186725      L16168 Vulcan Construction Materials, LLC
+## 192016      P24326           Cannelton Industries Inc
+## 203023      L14716          Essroc Cement Corporation
+## 204136      P24326           Cannelton Industries Inc
+## 208078      P24326           Cannelton Industries Inc
+## 213650      L06514                   Rogers Group Inc
+## 217861      L16823                     Dravo Lime Inc
+## 218971      L09912                  APAC-Oklahoma Inc
+## 220741     0051343            Oak Grove Resources LLC
+## 229905      L16823                     Dravo Lime Inc
+## 242692     0051706   Aggregate Industries - MWR, Inc.
+## 243406      L14716          Essroc Cement Corporation</code></pre>
+<p>Thare are a couple of duplicate rows in the dataset, but remember
+that the dicision to remove such duplicates may depend on your knowledge
+of the data and its collection processes.</p>
+<pre class="r"><code># Remove duplicates
+cleaned_data &lt;- mine_accidents %&gt;%
+  distinct()</code></pre>
+</div>
+<div id="handle-missing-values" class="section level4">
+<h4>Handle Missing Values</h4>
+<p>“missing values” refer to the absence of data for one or more
+attributes (columns) in a dataset where data should ideally be present.
+These missing values can occur for various reasons and are a common
+issue in real-world datasets. Understanding and appropriately handling
+missing values is crucial for accurate and reliable data analysis.</p>
+<pre class="r"><code># Check for missing or null values
+missing_values &lt;- cleaned_data %&gt;%
+  summarise_all(~ sum(is.na(.)))
+
+print(missing_values)</code></pre>
+<pre><code>##   MINE_ID CONTROLLER_ID CONTROLLER_NAME OPERATOR_ID OPERATOR_NAME CONTRACTOR_ID
+## 1       0             0               0           0             0             0
+##   DOCUMENT_NO SUBUNIT_CD SUBUNIT ACCIDENT_DT CAL_YR CAL_QTR FISCAL_YR
+## 1           0          0       0           0      0       0         0
+##   FISCAL_QTR ACCIDENT_TIME DEGREE_INJURY_CD DEGREE_INJURY FIPS_STATE_CD
+## 1          0             1                0             0             0
+##   UG_LOCATION_CD UG_LOCATION UG_MINING_METHOD_CD UG_MINING_METHOD
+## 1              0           0                   0                0
+##   MINING_EQUIP_CD MINING_EQUIP EQUIP_MFR_CD EQUIP_MFR_NAME EQUIP_MODEL_NO
+## 1               0            0            0              0            101
+##   SHIFT_BEGIN_TIME CLASSIFICATION_CD CLASSIFICATION ACCIDENT_TYPE_CD
+## 1              990                 0              0                0
+##   ACCIDENT_TYPE NO_INJURIES TOT_EXPER MINE_EXPER JOB_EXPER OCCUPATION_CD
+## 1             0          24     42704      39777     38997             0
+##   OCCUPATION ACTIVITY_CD ACTIVITY INJURY_SOURCE_CD INJURY_SOURCE
+## 1          0           0        0                0             0
+##   NATURE_INJURY_CD NATURE_INJURY INJ_BODY_PART_CD INJ_BODY_PART SCHEDULE_CHARGE
+## 1                0             0                0             0           65029
+##   DAYS_RESTRICT DAYS_LOST TRANS_TERM RETURN_TO_WORK_DT IMMED_NOTIFY_CD
+## 1         59847     44762          0                 0               0
+##   IMMED_NOTIFY INVEST_BEGIN_DT NARRATIVE CLOSED_DOC_NO COAL_METAL_IND
+## 1            0               0         1        143867              0</code></pre>
+<p>Some columns have significantly high number of missing values, given
+that the dataset contains 257041 observations.</p>
+<p>Some of the ways to handle missing values include:</p>
+<ul>
+<li><p>Deleting the the rows with missing values</p></li>
+<li><p>Imputing the the missing values, eg. mean imputation</p></li>
+<li><p>Interpolation and Extrapolation</p></li>
+<li><p>Forward Fill and Backward Fill (Time-Series Data)</p></li>
+</ul>
+<p>We choose to remove the rows with missing values.</p>
+<pre class="r"><code># Remove rows with missing values in &quot;MINE_EXPER&quot; column
+# is.na() returns the rows with missing or null values
+# The ! means filter out those rows without missing values
+cleaned_data  &lt;- cleaned_data %&gt;%
+  filter(!is.na(MINE_EXPER))</code></pre>
+<p>If you found out that a dataset you about to analyze has a lot of
+missing values in it, what actions would you take as a data analyst?</p>
+</div>
+<div id="converting-data-types" class="section level4">
+<h4>Converting Data Types</h4>
+<p>From the output of the <code>str</code> function we found out that
+the ACCIDENT_DT column was wrongly represented as a character instead of
+date. Lets convert it to a date type.</p>
+<pre class="r"><code># Convert the column to date-time format
+# Replace &quot;%Y-%m-%d&quot; with the actual date format of your data
+
+cleaned_data &lt;- cleaned_data %&gt;%
+  mutate(ACCIDENT_DT = as.Date(ACCIDENT_DT, format = &quot;%m-%d-%Y&quot;))</code></pre>
+<p>The <code>mutate</code> function from the dplyr package allows us to
+perform operations on the columns in the dataframe.</p>
+</div>
+<div id="select-relevant-data-for-analysis" class="section level4">
+<h4>Select Relevant Data for Analysis</h4>
 <p>Not all of the data would be helpful in our analysis for example:
 CAL_YR, CAL_QTR, FISCAL_YR, FISCAL_QTR contains information already
 capture in the ACCIDENT_DT column. And would not contribute much to our
@@ -864,8 +1179,105 @@ function that can be used to select the columns we want to use of our
 analysis or those we wish to exclude from the analysis.</p>
 <pre class="r"><code># Exclude uncessary columns from the dataset
 
-cleaned_data &lt;- mine_accidents %&gt;% 
+cleaned_data &lt;- cleaned_data %&gt;% 
                 select(-c(CAL_YR, CAL_QTR, FISCAL_YR, FISCAL_QTR))</code></pre>
+<p>We have just perform some data cleaning on the dataset, but our data
+is not 100% clean now, we realize that we did not handle the missing
+values in all the columns of the data set.</p>
+<p>Other data cleaning processes you can undertake to ensure that the
+dataset is clean.</p>
+<ol style="list-style-type: decimal">
+<li><p><strong>Outlier Detection and Handling:</strong></p>
+<ul>
+<li>Identify and address outliers that may skew your analysis. Decide
+whether to remove, transform, or cap extreme values.</li>
+</ul></li>
+<li><p><strong>Standardizing and Scaling:</strong></p>
+<ul>
+<li>Standardize or scale variables if needed. This is important when
+variables have different units or scales. Common techniques include
+z-score standardization and min-max scaling.</li>
+</ul></li>
+<li><p><strong>Encoding Categorical Data:</strong></p>
+<ul>
+<li>Convert categorical variables into a suitable format for analysis.
+You can use one-hot encoding, label encoding, or other encoding
+techniques depending on the data and analysis methods.</li>
+</ul></li>
+<li><p><strong>Handling Inconsistent Data:</strong></p>
+<ul>
+<li>Check for inconsistencies in data, such as inconsistent
+capitalization, spelling, or formatting in text data. Standardize text
+data if necessary.</li>
+</ul></li>
+<li><p><strong>Dealing with Data Transformation:</strong></p>
+<ul>
+<li>If your data involves text or unstructured information, you might
+need to perform data transformation tasks like text cleaning, stemming,
+or tokenization.</li>
+</ul></li>
+<li><p><strong>Dealing with Data Integrity Issues:</strong></p>
+<ul>
+<li>Ensure that unique identifiers or keys are unique and consistent
+across datasets. Resolve discrepancies if multiple data sources are
+integrated.</li>
+</ul></li>
+<li><p><strong>Data Validation:</strong></p>
+<ul>
+<li>Cross-check data against external sources or validation rules to
+ensure accuracy. Data validation is especially critical for financial,
+healthcare, and scientific datasets.</li>
+</ul></li>
+<li><p><strong>Documentation:</strong></p>
+<ul>
+<li>Keep detailed records of all data cleaning steps, including the
+reasoning behind each decision. This helps with transparency and
+reproducibility.</li>
+</ul></li>
+<li><p><strong>Data Sampling:</strong></p>
+<ul>
+<li>If the dataset is large, consider using data sampling techniques to
+work with a smaller, representative subset for initial analysis.</li>
+</ul></li>
+</ol>
+<p>Data cleaning is an iterative process, and the specific steps you
+take will depend on your dataset’s characteristics and the goals of your
+analysis. Thorough data cleaning enhances the quality and reliability of
+your analysis results, making it a critical step in the data analysis
+workflow.</p>
+</div>
+<div id="exploratory-data-analysis-graphics" class="section level4">
+<h4>Exploratory Data Analysis (Graphics)</h4>
+<p>Remember the objectives of the analysis?</p>
+<ul>
+<li><p>number of accidents occurring at the various mine sites.</p></li>
+<li><p>when they occur and the type of injury sustained.</p></li>
+<li><p>type of mining methods used in those mine sites where the
+accidents occur so that they can adopt better mining methods at those
+sites.</p></li>
+</ul>
+<p>Each record in the dataset represents an accident, hence we know from
+the the unset that there are about 257041 accidents recorded in the
+dataset.</p>
+<p>The UG_LOCATION_CD is a code identifying the underground location
+where the accident/injury/illness occurred.</p>
+<p>UG_LOCATION gives a description of the underground location code
+where the accident/injury/illness occurred: (01) Vertical shaft; (02)
+Slope/inclined shaft; (03) Face; (04) Intersection; (05) Underground
+shop/office; (06) Last open crosscut; (07) Inby permanent support; (08)
+Haulageway; (09) Other entry (not haulageway); (98) Other; (99) Not
+Marked; (?) No value found.</p>
+<p>Lets first aggregate the number of accidents and group them by the
+location they occured</p>
+<pre class="r"><code>result &lt;- cleaned_data %&gt;% select(UG_LOCATION) %&gt;% summarize(count=mean(.))</code></pre>
+<pre><code>## Warning: There was 1 warning in `summarize()`.
+## ℹ In argument: `count = mean(.)`.
+## Caused by warning in `mean.default()`:
+## ! argument is not numeric or logical: returning NA</code></pre>
+<pre class="r"><code>result</code></pre>
+<pre><code>##   count
+## 1    NA</code></pre>
+</div>
 </div>
 </div>
 

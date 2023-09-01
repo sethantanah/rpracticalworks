@@ -24,7 +24,7 @@ library(ggplot2)
 
 ## Exploratory Statistics
 
-Exploratory Statistics refers to the use of statistical techniques to summarize and describe a dataset in order to uncover patterns, relationships, and initial insights. This can involve calculating summary statistics, creating visualizations, and using basic statistical methods to get a sense of the data's characteristics. Its is an important step in statistical data analysis.
+Exploratory Statistics refers to the use of statistical techniques to summarize and describe a data set in order to uncover patterns, relationships, and initial insights. This can involve calculating summary statistics, creating visualizations, and using basic statistical methods to get a sense of the data's characteristics. Its is an important step in statistical data analysis.
 
 > The examples will make illustrations using both functions native in R and a package when necessary. This is done to show the options you have when performing analysis in R.
 
