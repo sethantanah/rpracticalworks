@@ -561,9 +561,8 @@ accident_time = cleaned_data %>% select(ACCIDENT_DT) %>% filter(!is.na(ACCIDENT_
 
 head(accident_time, 5)
 ```
+
 ```{r}
 ggplot(cleaned_data, aes(x=ACCIDENT_DT)) + 
   geom_histogram(stat = 'count')
 ```
-
-

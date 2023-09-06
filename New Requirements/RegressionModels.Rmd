@@ -1,0 +1,286 @@
+---
+title: "Regression Models"
+author: "B Odoi"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+Regression is a statistical technique used for modeling the relationship between a dependent variable (also known as the target or response variable) and one or more independent variables (predictors or features).
+
+The primary goal of regression analysis is to:
+
+-   understand and quantify the relationship between these variables and
+
+-   use it to make predictions, infer causal relationships, or estimate the effect of one variable on another.
+
+We would consider the following regression models:
+
+-   Linear Regression
+
+-   Logistic Regression
+
+-   Polynomial Regression
+
+-   Ridge Regression and Lasso Regression
+
+-   ElasticNet Regression
+
+-   Support Vector Regression (SVR)
+
+-   Quantile Regression
+
+-   Poisson Regression
+
+-   Time Series Regression
+
+-   Nonlinear Regression
+
+-   Bayesian Regression
+
+-   Quantile Regression
+
+### Load Required Libraries
+
+```{r message=FALSE, warning=FALSE}
+
+# Correlation Plots
+library(ggplot2)
+library(tidyverse)
+library(dplyr)
+
+# Load excel file
+library(readxl)
+```
+
+### Load Dataset
+
+```{r message=FALSE, warning=FALSE}
+
+path_to_file <- "E:/OdoiPData/water-data.xlsx"
+waterqlt_data <- read_excel(path_to_file, sheet='mean-impute')
+head(waterqlt_data, 5)
+```
+
+### Linear Regression
+
+-   Linear regression is used when there is a linear relationship between the dependent variable and one or more independent variables.
+
+-   Simple Linear Regression: One dependent variable and one independent variable.
+
+-   Multiple Linear Regression: One dependent variable and multiple independent variables.
+
+As a professional your analysis may be used to make business decisions hence its important that you perform all necessary checks on the data you are using to model to ensure accurate model results. Here are some steps you would have to take before building your regression model:
+
+1.  **Data Exploration**:
+
+    -   Examine the data with summary statistics, histograms, and scatterplots to get a basic understanding of the variables, their distributions, and potential relationships.
+
+        ```{r}
+
+        # Select some numeric columns for the analysis
+        ds <- waterqlt_data %>% select(c(Conductivity, Salinity, "Sodium dissolved",                                              Chloride))
+        ```
+
+        ```{r}
+
+        # Obtain a statistical summary
+        summary(ds)
+        ```
+
+        ```{r}
+
+        par(mfrow = c(2, 2))  # Set up a 2x2 grid of plots (adjust as needed)
+
+        hist(ds$Conductivity, col = "lightblue")
+        hist(ds$Salinity, col = "lightblue")
+        hist(ds$`Sodium dissolved`, col = "lightblue")
+        hist(ds$Chloride, col = "lightblue")
+        ```
+
+2.  **Linearity**:
+
+    -   Ensure that there is a linear relationship between the dependent variable and the independent variables. You can use scatterplots or correlation matrices to check for linearity.
+
+        ```{r fig.align="center", echo = FALSE}
+
+        # Examine the correlation matrix
+        corr_matrix <- cor(ds)
+        corr_matrix
+        ```
+
+        ```{r}
+
+        # Plot a scatter diagram
+        pairs(ds, main = "Scatterplot Matrix of Dataset", pch = 21)
+        ```
+
+3.  **Multicollinearity**:
+
+    -   Detect and address multicollinearity, which occurs when independent variables are highly correlated with each other. High multicollinearity can destabilize coefficient estimates.
+
+    -   Calculate correlation coefficients between independent variables and use variance inflation factors (VIFs) to assess multicollinearity.
+
+4.  **Outliers**:
+
+    -   Identify and handle outliers that may have a disproportionate impact on the model. Outliers can affect the regression coefficients and the model's fit.
+
+    -   Use boxplots, scatterplots, or statistical tests (e.g., Cook's Distance) to detect outliers.
+
+        ```{r}
+
+
+        #The IQR method identifies outliers as values that fall below Q1 - 1.5 * IQR or above Q3 + 1.5 * IQR, where Q1 is the first quartile and Q3 is the third quartile. Here's a function that accomplishes this:
+
+        detect_outliers_iqr <- function(data) {
+          # Initialize an empty list to store outlier indices for each column
+          outlier_indices <- list()
+          
+          # Loop through each column in the dataset
+          for (col in 1:ncol(data)) {
+            # Calculate the quartiles and IQR for the column
+            Q1 <- quantile(data[, col], 0.25, na.rm = TRUE)
+            Q3 <- quantile(data[, col], 0.75, na.rm = TRUE)
+            IQR <- Q3 - Q1
+            
+            # Calculate the lower and upper bounds for outliers
+            lower_bound <- Q1 - 1.5 * IQR
+            upper_bound <- Q3 + 1.5 * IQR
+            
+            # Find the indices of outliers in the column
+            outliers <- which(data[, col] < lower_bound | data[, col] > upper_bound)
+            
+            # Store the outlier indices in the list
+            outlier_indices[[col]] <- outliers
+          }
+          
+          # Return a list of outlier indices for each column
+          return(outlier_indices)
+        }
+
+
+        outlier_indices <- detect_outliers_iqr(ds)
+
+        # Print the indices of outliers in each column
+        for (col in 1:length(outlier_indices)) {
+          cat("Outliers in Column", col, ": ", length(outlier_indices[[col]]), "\n")
+        }
+        ```
+
+        ```{r}
+
+        # Create a boxplot of residuals
+        boxplot(ds, main = "Boxplot of Residuals")
+        ```
+
+The insights gained from the exploratory test will inform the
+
+-   treatment to give to the data before fitting the model.
+
+Linear regression models can be formed with or without interaction effects
+
+#### Linear Regression without Interaction Effect
+
+In a standard linear regression model without interaction effects, each predictor variable (independent variable) is assumed to have a constant and independent effect on the dependent variable.
+
+-   We have 4 variables that we want to use to model
+
+-   We would use `conductivity` as the response variable `salinity`, `sodium dissolved` and `chloride` as predictors.
+
+    **Simple Linear Regression**
+
+    This models involves only two variables, the predicted and a predictor.
+
+    ```{r}
+    # Regress Conductivity with Sodium dissolved
+    sreg_model <- lm(Conductivity ~ `Sodium dissolved`, data = ds)
+
+    # model  summary
+    summary(sreg_model)
+    ```
+
+-    **Multiple Linear Regression**
+
+    This models involves more than two variables, the predicted and predictors.
+
+    ```{r}
+
+    # Regress Conductivity with `Sodium dissolved`, Salinity  and Chloride
+    mreg_model <- lm(Conductivity ~ `Sodium dissolved` + Salinity + Chloride, data = ds)
+
+    # model  summary
+    summary(mreg_model)
+    ```
+
+####   Explanation of the model summary output
+
+-    **Call**:
+
+-   Displays the call that was used to fit the linear regression model, including the formula and dataset used.
+
+-   **Residuals**:
+
+    -   Provides summary statistics for the residuals (differences between observed and predicted values):
+
+        -   Min: Minimum residual
+
+        -   1Q: First quartile (25th percentile) of residuals
+
+        -   Median: Median (50th percentile) of residuals
+
+        -   3Q: Third quartile (75th percentile) of residuals
+
+        -   Max: Maximum residual
+
+-   **Coefficients**:
+
+    -   Presents the estimated coefficients for each predictor variable in the model:
+
+        -   Estimate: The estimated coefficient value.
+
+        -   Std. Error: Standard error of the coefficient estimate.
+
+        -   t value: The t-statistic, which measures the number of standard errors the coefficient estimate is from zero.
+
+        -   Pr(\>\|t\|): The p-value associated with the t-statistic, indicating the statistical significance of the coefficient.
+
+    -   Signif. codes: A set of asterisks (*) indicating the level of significance (e.g., "*\*\*" for highly significant).
+
+-   **Residual standard error**:
+
+    -   Provides an estimate of the standard deviation of the residuals. It represents the typical magnitude of the model's prediction errors.
+
+-   **Multiple R-squared**:
+
+    -   Measures the proportion of variance in the dependent variable (Y) explained by the model's predictors. Higher values indicate better fit.
+
+    -   Adjusted R-squared: A version of R-squared that adjusts for the number of predictors. It penalizes the addition of unnecessary variables.
+
+-   **F-statistic and p-value**:
+
+    -   The F-statistic assesses whether the overall regression model is statistically significant.
+
+    -   The p-value associated with the F-statistic indicates whether the model, as a whole, explains a significant amount of variance.
+
+#### Linear Regression with Interaction Effect
+
+-    linear regression models with interaction effects allow for the possibility that the effect of one predictor on the dependent variable depends on the value of another predictor.
+
+-   Interaction effects are used when there is reason to believe that the relationship between two predictors is not additive but rather multiplicative or otherwise dependent.
+
+-   Interaction terms are added to the model to capture these interactions. For example, you might include terms like **`X1*X2`** to represent the interaction between **`X1`** and **`X2`**.
+
+-   Form a model with interaction effects can get quite cumbersome when the number of variables are many, and can increase the complexity of the model.
+
+```{r}
+
+# Regress Conductivity with Sodium dissolved
+interaction_reg_model <- lm(Conductivity ~ `Sodium dissolved` + Salinity + Chloride + # main effect
+                                `Sodium dissolved` * Salinity + # interaction effect
+                                `Sodium dissolved` *  Chloride + # interaction effect
+                                 Salinity * Chloride + # interaction effect
+                                `Sodium dissolved` * Salinity * Chloride # interaction effect between all the variables
+                                 , data = ds)
+
+# model  summary
+summary(interaction_reg_model)
+```

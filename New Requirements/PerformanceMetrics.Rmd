@@ -1,0 +1,368 @@
+---
+title: "Performance Matrics and Model Diagnostics"
+author: "B Odoi"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+The aim of this section is to demonstrate how to calculate performance metrics such as the:
+
+MSE, MAE, MAPE and RMSE for regression analysis.
+
+### Load Required Libraries
+
+```{r message=FALSE, warning=FALSE}
+
+#install.packages("yardstick")
+#install.packages("Metrics")
+#install.packages("caret")
+```
+
+```{r message=FALSE, warning=FALSE}
+
+# Load required libraries
+library(caret)
+library(Metrics)
+library(yardstick)
+```
+
+### Load Dataset
+
+The environment.csv dataset is a mocked up dataset, that contains data on environmental pollution levels, waste generation and energy consumption at various urban, suburban and rural areas.
+
+The data was created for demonstration purposes only.
+
+```{r}
+
+path_to_file <- "C:/Users/Dev admin/Downloads/OdoiPData/environmental_data.csv"
+env_ds <- read.csv(path_to_file)
+head(env_ds, 5)
+```
+
+Lets fit a simple linear regression model to the data and then access its performance metrics.
+
+-   We would regress the pollution level with the energy consumption.
+
+```{r}
+ 
+reg_model <- lm(Pollution_Level ~ Energy_Consumed, data = env_ds)
+summary(reg_model)
+```
+
+### Compute Model Metrics
+
+Lets first make some predictions with our model.
+
+-   The `predict` function is a convenience function used to make predictions of the target variable using new data of independent variables.
+
+-   We would use the predicted values and the actual values to compute the model performance metrics.
+
+```{r}
+
+energy_consumed <- data.frame(Energy_Consumed= env_ds$Energy_Consumed)
+actual          <- env_ds$Pollution_Level # Actual target values
+predicted       <- predict(reg_model, newdata = energy_consumed, type = "response") # Predicted Polution levels
+
+head(cbind(actual, predicted), 10)
+```
+
+```{r}
+
+plot(energy_consumed, actual, pch = 19, col = "blue", xlab = "x", ylab = "y")
+lines(new_x, predicted, col = "red", lwd = 2)
+```
+
+#### Compute Common Regression Metrics
+
+-   **Mean Squared Error (MSE)**:
+
+    -   MSE calculates the average of the squared differences between the predicted values and the actual values (targets).
+
+    -   It penalizes large errors heavily, making it sensitive to outliers.
+
+    -   Lower MSE values indicate better model performance.
+
+    ```{r}
+
+    mae <- MAE(actual, predicted)
+    cat("Mean Absolute Error (MAE):", mae, "\n")
+    ```
+
+-   **Root Mean Squared Error (RMSE)**:
+
+    -   RMSE is the square root of the MSE and is expressed in the same units as the target variable.
+
+    -   It provides a measure of the average absolute error between predicted and actual values.
+
+    -   Like MSE, lower RMSE values indicate better performance.
+
+        ```{r}
+
+        rmse <- RMSE(actual, predicted)
+        cat("Root Mean Squared Error (RMSE):", rmse, "\n")
+        ```
+
+-   **Mean Absolute Error (MAE)**:
+
+    -   MAE calculates the average of the absolute differences between predicted values and actual values.
+
+    -   It is less sensitive to outliers compared to MSE.
+
+    -   Smaller MAE values indicate better model fit.
+
+        ```{r}
+
+        mae <- mean(abs(predicted - actual))
+        cat("Mean Absolute Error (MAE):", mae, "\n")
+        ```
+
+-   **Mean Absolute Percentage Error (MAPE)**:
+
+    -   MAPE calculates the average percentage difference between predicted and actual values.
+
+    -   It is often used in forecasting and time series analysis.
+
+    -   Lower MAPE values indicate better predictive accuracy.
+
+        ```{r}
+
+        mape <- mean(abs((actual - predicted) / actual)) *100
+        cat("Mean Absolute Percentage Error (MAPE):", mape, "\n")
+        ```
+
+-   **R-squared (R²)**:
+
+    -   R-squared measures the proportion of the variance in the dependent variable that is explained by the independent variables (features) in the model.
+
+    -   It ranges from 0 to 1, where higher values (closer to 1) indicate a better fit.
+
+    -   R² = 1 indicates that the model perfectly fits the data.
+
+        ```{r}
+
+        r_squared <- R2(actual, predicted)
+        cat("R-squared (R2):", r_squared, "\n")
+        ```
+
+-   **Adjusted R-squared (Adj. R²)**:
+
+    -   Adjusted R-squared adjusts the R-squared value to account for the number of predictors in the model.
+
+    -   It penalizes the inclusion of irrelevant predictors, helping prevent overfitting.
+
+    -   A higher adjusted R-squared suggests a more parsimonious and better-fitting model.
+
+        ```{r}
+
+        adjusted_r_squared <- summary(reg_model)$adj.r.squared
+        cat("Adjusted R-squared:", adjusted_r_squared, "\n")
+        ```
+
+There are other model metrics such as:
+
+-   Coefficient of Determination (COD)
+
+-   AIC (Akaike Information Criterion) and BIC (Bayesian Information Criterion)
+
+-   Log-Likelihood and Deviance
+
+    That would be considered later.
+
+Put all the metrics together in one dataframe
+
+```{r}
+
+# Print Metrics
+model_metrics <- cbind(mae, rmse, mae, mape, r_squared, adjusted_r_squared)
+print(model_metrics)
+```
+
+Our model performance is not so promissing.
+
+-   This is so becuase the dataset was mocked up and hence holds no true representation of the actual relationships between the variables.
+
+-   A correlation plot could have help us ascertain the fitness of the data to be used for a regression model.
+
+-   Usually variables used for regression analysis must have some correlation with the independent variable.
+
+### Model Diagnostics
+
+Model diagnostics refer to a set of techniques and procedures used to assess the quality and performance of a statistical or machine learning model.
+
+-   These diagnostics are essential for evaluating whether a model's assumptions are met, identifying potential issues, and ensuring that the model provides reliable predictions or inferences.
+
+-   Model diagnostics can be applied to various types of models, including regression models, classification models, time series models, and more. Here are some key aspects of model diagnostics:
+
+#### **Residual Analysis**
+
+Residuals are the differences between the observed values and the predicted values generated by the model.
+
+Residual analysis involves examining the properties of residuals to check if the model assumptions are met. Common residual diagnostic plots and tests include:
+
+-   Scatterplots of residuals vs. predicted values.
+
+-   Histograms or Q-Q plots of residuals to assess their distribution.
+
+-   Residuals vs. independent variables to identify patterns or heteroscedasticity.
+
+-   Autocorrelation plots for time series models.
+
+```{r}
+
+# Obtain the residuals from the model
+residuals <- residuals(reg_model)
+```
+
+**Scatterplot of Residuals vs. Fitted Values**
+
+-   Useful in detecting heteroskedasticity.
+
+-   Heteroskedasticity refers to the situation where the variance of the residuals is not constant across all levels of the independent variable(s).
+
+-   In the scatterplot, if you observe a funnel-shaped or fan-shaped pattern, where the spread of residuals widens or narrows systematically as you move along the fitted values, it indicates the presence of heteroskedasticity.
+
+-   We expect this plot to have no structure to it. The presence of structure could be an indication of a problem as indicated earlier.
+
+```{r}
+
+plot1 <- ggplot(data.frame(Fitted = reg_model$fitted.values, Residuals = residuals), aes(x = Fitted, y = Residuals)) +
+         geom_point() +
+         geom_hline(yintercept = 0, color = "red", linetype = "dashed") +
+         labs(title = "Residuals vs. Fitted Values", x = "Fitted Values", y = "Residuals")
+
+plot1
+```
+
+**Histogram of Residuals (for normality check)**
+
+A histogram of residuals provides valuable insights into the distribution and characteristics of the residuals in a regression model. Analyzing the histogram can reveal several important aspects about the model's performance and the validity of model assumptions:
+
+1.  **Residual Distribution**: The shape of the histogram can give you a sense of the distribution of residuals. Common distributions include normal (bell-shaped), skewed (positively or negatively), and bimodal (having two distinct peaks).
+
+2.  **Normality Assumption**: If the histogram of residuals resembles a bell-shaped curve, it suggests that the residuals are approximately normally distributed, which is a fundamental assumption in many regression models, including linear regression. Deviations from normality may indicate issues with the model's assumptions.
+
+3.  **Symmetry**: A symmetric histogram with residuals centered around zero suggests that the model is performing well in terms of bias (systematic over- or under-predictions).
+
+4.  **Outliers**: Outliers or extreme values in the histogram can indicate observations with large errors that may be influential or problematic for the model. These outliers should be investigated further.
+
+5.  **Skewness**: If the histogram is skewed (positively or negatively), it may indicate a skewed distribution of residuals, which can affect the model's accuracy and reliability. Transformation of the dependent variable or modeling techniques like generalized linear models (GLMs) may be considered in such cases.
+
+6.  **Multimodality**: A histogram with multiple peaks (multimodal) can indicate that the data contains subpopulations with different behaviors. This may suggest that the model is not capturing all relevant patterns in the data, or that there are unmodeled variables affecting the response.
+
+7.  **Model Adequacy**: An ideal histogram of residuals shows a relatively symmetric, bell-shaped distribution centered around zero. Such a distribution suggests that the model's assumptions are met, and the model is a good fit for the data.
+
+8.  **Model Improvements**: If the histogram reveals non-random patterns (e.g., clustering of residuals at specific values), it may suggest that there are systematic patterns in the data that the model has not captured. In such cases, model improvement or feature engineering may be needed.
+
+```{r}
+
+plot2 <- ggplot(data.frame(Residuals = residuals), aes(x = Residuals)) +
+         geom_histogram(binwidth = 20, fill = "gray", color = "black") +
+         labs(title = "Histogram of Residuals", x = "Residuals")
+
+plot2
+```
+
+**Residuals vs. Normal Probability Plot (for normality check)**
+
+A Residuals vs. Normal Probability Plot, also known as a Q-Q (Quantile-Quantile) plot of residuals, provides insights into whether the residuals of a regression model follow a normal distribution.
+
+In this plot, the observed residuals are compared to the quantiles of a theoretical normal distribution. Here's what a Residuals vs. Normal Probability Plot can tell you about your model:
+
+-   If the points closely follow a straight line, it suggests that the residuals are approximately normally distributed, and the normality assumption is met.
+
+-   If the points deviate from the straight line, it suggests departures from normality.
+
+-   If the deviations are mainly in the tails of the plot, it may indicate heavy-tailed or leptokurtic residuals.
+
+-   If the deviations are in the center of the plot, it may indicate skewness or asymmetry in the residuals' distribution.
+
+-   Outliers in the plot may suggest the presence of influential data points or issues with the model.
+
+| Keep in mind that strict adherence to the normality assumption is not always necessary, especially in large samples where the central limit theorem may apply. However, departures from normality can affect the reliability of hypothesis tests, confidence intervals, and prediction intervals. If you detect significant departures from normality in the residuals, you may need to consider robust regression techniques or transformations to address the issue or explore alternative modeling approaches.
+
+```{r}
+
+
+plot3 <- ggplot(data.frame(Residuals = residuals), aes(sample = residuals)) +
+         geom_qq() +
+         geom_qq_line(color = "red") +
+         labs(title = "Q-Q Plot of Residuals", x = "Theoretical Quantiles", y = "Sample Quantiles")
+
+plot3
+```
+
+```{r}
+
+# Arrange and display the plots
+library(gridExtra)
+grid.arrange(plot1, plot2, plot3, ncol = 2)
+```
+
+#### Influence and Outlier Detection
+
+**Cook's Distance Plot**: Cook's distance measures the influence of each observation on the model's coefficients. Values greater than 1 indicate observations with potentially high influence.
+
+```{r}
+
+# Calculate Cook's distances
+cooksd <- cooks.distance(reg_model)
+
+# Create a Cook's distance plot
+plot(cooksd, pch = 20, main = "Cook's Distance Plot")
+abline(h = 4 / length(cooksd), col = "red", lty = 2)
+```
+
+**Residuals vs. Leverage Plot (Cook's Distance Plot)**:
+
+This plot combines residuals and leverage to identify influential observations with large residuals and high leverage.
+
+-   Observations that fall above the line are considered to have a higher level of influence on the model.
+
+-   These influential points can significantly impact the estimated regression coefficients, leading to potential changes in the model's parameters.
+
+```{r}
+
+library(car)
+# Create a residuals vs. leverage (Cook's Distance) plot
+influencePlot(reg_model)
+```
+
+**Boxplot of Residuals**:
+
+A boxplot of residuals provides valuable insights into the distribution and variability of the model residuals, which are the differences between the observed values and the predicted values generated by the model.
+
+1.  **Outliers**:
+
+    -   Outliers are data points that fall significantly above or below the "whiskers" of the boxplot. They are represented as individual points outside the whiskers.
+
+    -   The presence of outliers in the residuals may indicate errors in the model, influential observations, or unaccounted-for factors in the data.
+
+2.  **Spread of Residuals**:
+
+    -   The length of the whiskers (vertical lines extending from the box) provides information about the spread of the residuals.
+
+    -   If the whiskers are of different lengths, it can indicate heteroskedasticity (varying spread of residuals) or non-constant variance.
+
+```{r}
+
+# Create a boxplot of residuals
+boxplot(residuals(reg_model), main = "Boxplot of Residuals")
+
+```
+
+**DFFITS Plot**: DFFITS measures the influence of each observation on the predicted values. Observations with DFFITS values greater than $2*\sqrt(p+1/n)$​​ are often considered influential.
+
+```{r}
+
+# Calculate DFFITS
+n <- nobs(reg_model)
+p <- length(coefficients(reg_model)) - 1
+dffits <- dffits(reg_model)
+
+# Create a DFFITS plot
+plot(dffits, pch = 20, main = "DFFITS Plot")
+abline(h = 2 * sqrt((p + 1) / n), col = "red", lty = 2)
+
+```
+
+What are your taughts about the fitted regression model from the model diagnostics we have obtained.

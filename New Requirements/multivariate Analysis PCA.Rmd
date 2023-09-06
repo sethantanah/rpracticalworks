@@ -1,0 +1,491 @@
+---
+title: "Multivariate Analysis"
+author: "B Odoi"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+The dimensionality reduction techniques discussed here are:
+
+-   Principal Component Analysis and
+
+-   Factor Analysis
+
+## Principal Component Analysis (PCA)
+
+Principal Component Analysis is a technique used for dimensionality reduction and feature extraction in multivariate data analysis.
+
+| The aim of applying PCA is to capture the most significant sources of variation in your data among the predictor variables.
+
+-   It does this by creating new variables, called principal components, which are linear combinations of the original features.
+
+-   The goal is to reduce the dimensionality of the dataset while retaining as much of the variance in the data as possible.
+
+-   This process is used for exploratory data analysis, visualization, or preparing data for further analysis, like clustering or regression.
+
+#### Load Required Libraries
+
+```{r libraries, message=FALSE, warning=FALSE}
+
+# Correlation Plots
+library(ggcorrplot)
+
+# PCA Visualization tools
+library(factoextra)
+library(purrr)
+
+# Load 
+library(readxl)
+```
+
+#### Load Dataset
+
+The dataset consist of water quality data collected over a peroid at a particular locality.
+
+The data was preprocessed prior to this analysis
+
+| Remember that prior to any analysis the dataset must be taken through the usual data cleaning and visualization processes to ensure data quality before carrying out the analysis.
+
+```{r dataset}
+
+path_to_file <- "C:/Users/Dev admin/Downloads/OdoiPData/water-data.xlsx"
+waterqlt_data <- read_excel(path_to_file, sheet='mean-impute')
+head(waterqlt_data, 5)
+```
+
+#### Correlation Plots
+
+Correlation plots visualize the correlation between variables. The color scale shows the strength of the correlation between the variables.
+
+```{r fig.align="center", echo = FALSE, fig.width = 8, fig.height = 7}
+
+corr_matrix <- cor(waterqlt_data)
+corr_plot <- ggcorrplot(corr_matrix)
+corr_plot
+```
+
+#### Applying PCA
+
+Here are the general steps for applying PCA:
+
+1.  Standardize or normalize the predictor variables if they are measured on different scales.
+
+2.  Apply PCA to the predictor variables only.
+
+3.  Select a suitable number of principal components to retain based on your analysis goals and the amount of variance you want to explain (e.g., you might choose to retain enough components to explain 95% of the variance).
+
+4.  Use the retained principal components as the new features in your analysis, if applicable.
+
+5.  Continue with your data analysis, which may include regression, classification, clustering, or visualization, using the transformed dataset.
+
+#### Standardize or Normalize the data
+
+A description of the dataset shows that the measurements of the variables are in different ranges, this will require that we scale our data to keep all the variables in the same range.
+
+```{r}
+
+data_normalized <- data.frame(scale(waterqlt_data))
+head(data_normalized, 2)
+```
+
+The `princomp` or `prcomp` function are used to perform PCA.
+
+| The former performs PCA on the correlation matrix, while the later requires the raw dataset.
+
+`prcomp` will be used to perform PCA in this scenario.
+
+```{r}
+
+# center a logical value indicating whether the variables should be shifted to be zero centered
+
+# scale a logical value indicating whether the variables should be scaled to have unit variance before the analysis takes place. Generally scaling is advisable.
+
+# scale is set to FALSE (F) since we have manuallys scaled the dataset.
+
+pca_result <- prcomp(data_normalized, center= F, scale = F)
+```
+
+-   Unlike princomp, variances are computed with the usual divisor N − 1
+
+-   Note that `scale = TRUE` cannot be used if there are zero or constant (for `center = TRUE`) variables.
+
+#### PCA Results
+
+```{r}
+
+summary(pca_result)
+```
+
+1.  Standard Deviation:
+
+    -   In PCA, the standard deviation of a principal component (PC) measures the spread or variability of data along that PC's axis.
+
+    -   Each PC captures a certain amount of information or variance in the data. The higher the standard deviation of a PC, the more information it captures.
+
+    -   PCs are ranked in descending order of their standard deviations, with the first PC having the highest standard deviation, the second PC having the second-highest, and so on.
+
+    -   The standard deviation of each PC indicates how much of the total variance in the original data is explained by that particular PC.
+
+2.  Proportion of Variance (Eigenvalues):
+
+    -   The proportion of variance explains how much of the total variance in the original data is accounted for by each principal component.
+
+    -   It is calculated by dividing the squared standard deviation of each PC by the sum of squared standard deviations of all the PCs.
+
+    -   The proportion of variance tells you the importance or significance of each PC in terms of explaining the data's overall variability.
+
+    -   It's often expressed as a percentage, making it easier to interpret. A high proportion of variance suggests that the PC captures a substantial amount of information in the data.
+
+3.  Cumulative Proportion of Variance:
+
+    -   The cumulative proportion of variance is the running total of the proportions of variance for all the principal components up to a certain point.
+
+    -   It helps you decide how many principal components to retain for dimensionality reduction. By choosing a threshold (e.g., 95% cumulative variance), you can determine how many PCs are needed to capture a sufficient amount of information from the original data.
+
+    -   The cumulative proportion of variance provides a way to balance dimensionality reduction (fewer PCs) with information retention (explaining a large portion of the total variance).
+
+Interpreting these statistics in PCA results:
+
+-   You typically examine the standard deviations and proportion of variance to determine which principal components are the most important.
+
+-   A small standard deviation or low proportion of variance for a PC suggests that it doesn't explain much variability in the data and may be less relevant.
+
+-   The cumulative proportion of variance helps you decide how many PCs to retain. If you want to retain 95% of the total variance, you'll choose the first k PCs that together explain at least 95% of the total variance.
+
+Lets visualize these statistics in a scree and cumulative plot.
+
+#### Scree Plots
+
+```{r}
+
+fviz_screeplot(pca_result, addlabels = TRUE, ylim = c(0, 50))
+```
+
+The first component explains 21.6% of the variability in the dataset and the second component 18.7%.
+
+#### Cumulative Plot.
+
+```{r}
+
+# Calculate the cumulative variance explained
+cumulative_variance <- cumsum(pca_result$sdev^2) / sum(pca_result$sdev^2)
+
+# Create a cumulative variance plot
+plot(cumulative_variance, type = "b", 
+     xlab = "Number of Principal Components",
+     ylab = "Cumulative Variance Explained",
+     main = "Cumulative Variance Explained by Principal Components")
+
+# Add a horizontal line at a specific threshold (e.g., 0.95 for 95% variance)
+abline(h = 0.95, col = "red", lty = 2)
+
+# Identify the number of components that explain a specific threshold (e.g., 95%)
+n_components_threshold <- sum(cumulative_variance < 0.95) + 1
+text(n_components_threshold, 0.95, labels = paste(n_components_threshold, "PCs"), pos = 4)
+
+```
+
+-   PC 1 and 2 explains less than 50% of the variability in the dataset.
+
+-   14 PCs are required to explain 95% of the variation in the data.
+
+What might affect your choice of a reasonable threshold?
+
+**Interpretability**: Think about the interpretability of the results. Retaining fewer components may lead to more interpretable results, as you are focusing on the most important dimensions of variation in the data. If interpretability is crucial, you might lean toward a higher threshold.
+
+**Dimensionality Reduction Goals**: If your primary goal is to reduce the number of variables while preserving most of the information, you might choose a higher threshold. On the other hand, if you need to retain as much information as possible, you might opt for a lower threshold.
+
+#### Eigen Values
+
+In Principal Component Analysis (PCA), eigenvalues are a fundamental concept that plays a central role in the analysis. Eigenvalues are associated with the covariance matrix or correlation matrix of the original data and provide valuable information about the variance explained by each principal component. Here's a more detailed explanation of eigenvalues in PCA:
+
+1.  **Covariance Matrix**: In PCA, you typically start with a dataset that consists of multivariate observations. To find the principal components, you first compute the covariance matrix of these observations. The covariance matrix summarizes how the variables in your data are related to each other and measures their joint variability.
+
+2.  **Eigenvalues**: Once you have the covariance matrix, you perform an eigenvalue decomposition (also known as eigendecomposition) of this matrix. An eigenvalue decomposition breaks down the covariance matrix into a set of eigenvectors and eigenvalues.
+
+3.  **Eigenvectors**: Eigenvectors are the directions or axes along which the data varies the most (i.e., the principal components). These are orthogonal to each other, meaning they are linearly independent and perpendicular. Each eigenvector corresponds to one principal component.
+
+4.  **Eigenvalues**: Eigenvalues are associated with the eigenvectors. They represent the amount of variance explained by each corresponding eigenvector (principal component). The eigenvalues are sorted in descending order, with the largest eigenvalue corresponding to the first principal component, the second-largest to the second principal component, and so on.
+
+5.  **Explained Variance**: Eigenvalues tell you how much of the total variance in the original data is explained by each principal component. The larger the eigenvalue, the more variance is explained by the corresponding principal component. Eigenvalues are often normalized to sum to the total variance (usually 1), making it easy to express the proportion of variance explained by each component.
+
+```{r}
+
+get_eig(pca_result)
+```
+
+**Variable contributions to the principal axes**
+
+Contributions of variables to PC1
+
+| Change the `axes` parameter from 1 to 2 to obtain that of PC2 and so on.
+| The top parameter controls the number of variables contributing the most the pc to be displayed.
+
+```{r}
+
+fviz_contrib(pca_result, choice = "var", axes = 1, top = 12)
+```
+
+```{r}
+
+var <- get_pca_var(pca_result)
+
+data.frame(var$coord)
+data.frame(var$contrib)
+```
+
+-   Sodium.dissolved, Chloride and Salinity contributed the most to PC1.
+
+    > The commonality between sodium dissolved, chloride, and salinity is their association with the presence of salts, particularly sodium chloride, in water.
+
+-   Potassium and calcium dissolved contributed the most to PC2.
+
+Knowing the variable contribution to a principal component in Principal Component Analysis (PCA) provides insights into how each original variable (feature) contributes to the creation of that specific principal component. It helps you understand the relationships between the variables and the structure of the principal components. Here's what variable contribution means in the context of PCA:
+
+1.  **Weighting Variables**: Each principal component is a linear combination of the original variables, with each variable assigned a specific weight or loading. Variable contribution tells you the magnitude of each variable's weight in the linear combination. Variables with higher contributions have more influence on that principal component.
+
+2.  **Direction of Influence**: The sign (positive or negative) of the variable contribution indicates the direction of the variable's influence on the principal component. A positive contribution means that an increase in the variable's value will lead to an increase in the principal component's value, while a negative contribution means the opposite.
+
+3.  **Interpretation**: Variable contributions allow you to interpret the principal components in the context of the original variables. For example, if a principal component has high positive contributions from variables related to customer satisfaction and low negative contributions from variables related to product quality, it might represent a dimension related to overall customer satisfaction.
+
+4.  **Dimension Reduction**: Variable contributions can guide dimensionality reduction. If you find that a particular variable has very low contributions to all principal components, it may be less relevant for capturing the underlying structure in the data, and you could consider removing it from further analysis.
+
+5.  **Visualization**: Variable contributions can help you visualize the importance of each variable in a specific principal component. You can create bar plots or heatmaps to display these contributions, making it easier to identify the most influential variables.
+
+6.  **Feature Selection**: Variable contributions can inform feature selection. In cases where you want to reduce the number of variables while retaining as much information as possible, you might choose to keep only the variables with the highest contributions to the most important principal components.
+
+7.  **Quality Control**: Monitoring variable contributions can be useful for quality control in PCA. If a variable with known importance is not contributing as expected to a relevant principal component, it may indicate an issue with the data or the analysis.
+
+#### Extract the Components
+
+The principal componets are stored in the `x` vector in the `pca_result` dataframe
+
+```{r}
+
+principal_components <- pca_result$x
+```
+
+Form a new dataset with the principal components and the original response variable.
+
+```{r}
+
+new_dataset <- data.frame(pH = waterqlt_data$pH, principal_components)
+head(new_dataset)
+```
+
+Choose only the first four components for furthur analysis
+
+```{r}
+
+no_comps = 4
+principal_components2 <- cbind(pH = waterqlt_data$pH, pca_result$x[, 1:no_comps])
+head(principal_components2)
+```
+
+## Factor Analysis
+
+Factor Analysis (FA) is a statistical technique used for dimensionality reduction and the identification of underlying latent factors or constructs that explain patterns in observed variables. Here are the key aspects of Factor Analysis:
+
+-   **Latent Factors**: Factor Analysis assumes that observed variables are influenced by underlying, unobservable (latent) factors. These latent factors represent the common variance shared among a group of related variables. For example, in psychology, latent factors might represent personality traits like extroversion, neuroticism, or openness.
+
+-   **Variance Decomposition**: FA aims to explain the variance-covariance structure of observed variables in terms of a smaller number of latent factors. It seeks to identify the latent factors that account for the most variability in the data.
+
+-   **Factor Loadings**: Factor loadings are coefficients that represent the strength and direction of the relationship between each observed variable and each latent factor. High factor loadings indicate that an observed variable is strongly associated with a particular latent factor.
+
+-   **Orthogonal vs. Oblique Factors**: Factor Analysis can produce orthogonal (uncorrelated) or oblique (correlated) factors, depending on the analysis type chosen. Orthogonal factors assume that the latent factors are uncorrelated with each other, while oblique factors allow for correlations between the latent factors.
+
+-   **Eigenvalues and Explained Variance**: Eigenvalues provide information about the amount of variance explained by each latent factor. Factors with high eigenvalues explain more of the variance in the data. Analysts often use the scree plot or eigenvalue criterion to decide how many factors to retain.
+
+-   **Rotation**: Factor rotation is often applied to make the results of Factor Analysis more interpretable. Orthogonal (e.g., varimax) or oblique (e.g., promax) rotations are used to clarify the relationships between variables and factors and simplify the interpretation.
+
+-   **Interpretation**: After Factor Analysis, researchers interpret the meaning of the extracted latent factors based on the pattern of factor loadings. These interpretations provide insights into the underlying structure of the data.
+
+```{r load-liraries, message=FALSE, warning=FALSE, paged.print=FALSE}
+
+# For KMO test
+library(psych)
+
+library(FactoMineR)
+library(readxl)
+library(factoextra)
+```
+
+### Check Data fit for Factor Analysis
+
+#### Kaiser-Meyer-Olkin (KMO) Measure
+
+-   Calculate the KMO measure to assess the sampling adequacy for Factor Analysis. KMO values should ideally be above 0.7 to indicate that the data are suitable for Factor Analysis. Higher KMO values suggest better factorability.
+
+-   A KMO value below 0.6 may indicate that Factor Analysis is not appropriate for your data.
+
+```{r}
+
+KMO(waterqlt_data)
+```
+
+#### **Bartlett's Test of Sphericity**
+
+-   Perform Bartlett's Test of Sphericity to test the hypothesis that the correlation matrix is an identity matrix (i.e., variables are uncorrelated). In Factor Analysis, you want to reject this hypothesis. A significant result (p \< 0.05) indicates that correlations between variables are sufficient for Factor Analysis.
+
+```{r}
+
+cortest.bartlett(waterqlt_data, n = nrow(waterqlt_data))
+```
+
+-   A p-value of 0 means the variables are uncorrelated but we will go ahead with it anyways.
+
+### Applying Factor Analysis
+
+#### Parallel Analysis
+
+Parallel Analysis provides an objective and data-driven method for selecting the number of factors to retain. This is particularly important because choosing the right number of factors is a crucial step in factor analysis. Without a data-driven approach, you might over-extract or under-extract factors, leading to biased results.
+
+```{r}
+
+parallel <- fa.parallel(waterqlt_data, fm='minres', fa='fa')
+parallel
+```
+
+#### Scree Plot
+
+The Scree Plot displays the eigenvalues of the factors in descending order. Each eigenvalue represents the amount of variance explained by its corresponding factor. The plot provides a visual representation of the contribution of each factor to the total variance in the data.
+
+1.  **Elbow Detection**: The primary purpose of the Scree Plot is to help analysts identify an "elbow" point in the plot. The elbow point is where the eigenvalues start to level off, indicating that additional factors contribute less to the total variance. This point represents a natural break in the eigenvalue curve.
+
+2.  Analysts typically choose to retain the factors corresponding to eigenvalues above the elbow point and disregard those below it.
+
+```{r}
+ev <- eigen(cor(waterqlt_data)) # Calculate eigen values from correlation matrix
+Factor = seq(1, ncol(waterqlt_data))
+Eigen_Values <- ev$values
+Scree <- data.frame(Factor, Eigen_Values)
+
+ggplot(data = Scree,mapping = aes(x=Factor,y=Eigen_Values))+
+  geom_point()+
+  geom_line()+
+  scale_y_continuous(name="Eigen Values",limits = c(0,4))+
+  theme(panel.background = element_blank())+
+  theme(plot.background = element_blank())+
+  theme(panel.grid.major.y = element_line(colour = "skyblue"))+
+  ggtitle("Scree Plot")
+```
+
+-   Eigen values greater than 1 are dimmed significant.
+
+-   From the plot we observe that about 5 eigen values are \> 1.
+
+-   And corresponds to about 6 factors, close to the 7 suggested by parallel analysis
+
+Now that we have an Idea of the number of factors to consider we can go ahead with applying factor analysis.
+
+```{r}
+
+no_factors = 6
+
+fa1 <-  fa(r= waterqlt_data, nfactors = no_factors, rotate = "varimax", fm = "pa")
+print(fa1)
+```
+
+| **Choices of rotation**
+| "none", "varimax", "quartimax", "bentlerT", "equamax", "varimin", "geominT" and "bifactor" are orthogonal rotations. "Promax", "promax", "oblimin", "simplimax", "bentlerQ,"geominQ" and "biquartimin" and "cluster" are possible oblique transformations of the solution.
+| 
+
+**Considerations for Choosing a Rotation Method**
+
+| **Theoretical Assumptions**: Consider the theoretical expectations or assumptions about the relationship between factors. If you have a theoretical basis for expecting factors to be uncorrelated, an orthogonal rotation like Varimax may be appropriate. If you expect factors to be correlated, an oblique rotation like Promax may be more suitable.
+
+| **Interpretability**: Think about the ease of interpretation. Some rotation methods produce clearer, more interpretable factor/component structures, while others may result in more complex solutions. Consider what makes the most sense for your research context.
+
+**Factoring method**:
+
+-   fm="minres" will do a minimum residual.
+
+-   fm="gls" does a generalized weighted least squares (GLS),
+
+-   fm="pa" will do the principal factor solution,
+
+-   fm="ml" will do a maximum likelihood factor analysis.
+
+-   fm="minchi" will minimize the sample size weighted chi square when treating pairwise correlations with different number of subjects per pair.
+
+-   fm ="minrank" will do a minimum rank factor analysis. "old.min" will do minimal residual the way it was done prior to
+
+#### Factor Diagram
+
+It provides a graphical depiction of how the factors are associated with and explain the variability in the observed variables.
+
+```{r fig.align="center", echo = FALSE, fig.width = 8, fig.height = 10}
+
+fa.diagram(fa1)
+```
+
+#### Factor Loadings
+
+Factor loadings are analogous to regression coefficients. They tell you how much a change in a latent factor is associated with a change in an observed variable. A higher absolute value of a factor loading indicates a stronger relationship between the latent factor and the observed variable.
+
+1.  **Sign**: The sign of the factor loading (positive or negative) indicates the direction of the relationship. A positive loading suggests that an increase in the latent factor is associated with an increase in the observed variable, while a negative loading suggests the opposite.
+
+2.  **Magnitude**: The magnitude (absolute value) of the factor loading indicates the strength of the relationship. Larger absolute values imply a stronger association between the latent factor and the observed variable.
+
+3.  **Range**: Factor loadings typically range from -1 to 1. Values closer to -1 or 1 indicate a stronger relationship, while values closer to 0 suggest a weaker relationship. Loadings near 0 suggest that the observed variable is not strongly influenced by the latent factor.
+
+4.  **Interpretation in PCA vs. FA**: In Principal Component Analysis (PCA), factor loadings represent the coefficients for the linear combination of variables that form the principal components. In Factor Analysis (FA), factor loadings represent the strength of the relationships between latent factors and observed variables while accounting for error terms (unique variances).
+
+5.  **Loadings Matrix**: Factor loadings are typically organized in a matrix, often referred to as the "loadings matrix" or "factor pattern matrix." Rows in the matrix represent latent factors, and columns represent observed variables. Each element in the matrix is a factor loading.
+
+6.  **Thresholds**: Researchers often use thresholds or cutoffs to decide which factor loadings are significant. Commonly used criteria include considering loadings with absolute values greater than 0.3 or 0.4 as significant. The choice of threshold depends on the specific context and research goals.
+
+```{r}
+
+fa1$loadings
+```
+
+```{r}
+
+load <- fa1$loadings[,1:3]
+plot(load, type = "n") # set up plot
+text(load, labels = names(waterqlt_data), cex=.7)
+```
+
+From the diagram
+
+-   Observed variables on the far right have a strong relationship with the FA1
+
+-   Those on the topmost have a strong relationship with FA2
+
+-   Those on the far right top have a strong relationship with both FA1 and FA2
+
+#### Performing the Factor analysis with factanal
+
+This is an alternative approach to applying factor analysis and extracting the results for model development.
+
+```{r}
+
+library(GPArotation)
+factanal(waterqlt_data, factors=no_factors, rotation="varimax") 
+```
+
+```{r}
+
+factanal(waterqlt_data, factors=no_factors, rotation="oblimin") 
+```
+
+Changing the **rotation method** and checking the **Cumulative Var** for each can help you pick out the best method to use.
+
+#### Extract factor loadings
+
+Use the best rotation method observed.
+
+```{r}
+
+factor_res = factanal(waterqlt_data, factors=no_factors, rotation="varimax",  scores="Bartlett")
+factor_res$loadings
+```
+
+#### Extract the factor scores
+
+```{r}
+
+fa_scores <- data.frame(factor_res$scores) 
+head(fa_scores)
+```
